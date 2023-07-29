@@ -7,7 +7,7 @@ from flask import Flask, jsonify, request, send_file
 from flask_cors import CORS
 from dotenv import load_dotenv
 
-from src.generate import gen_podcast
+from generate import gen_podcast
 
 # Set up OpenAI API credentials
 load_dotenv()
