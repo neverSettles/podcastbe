@@ -7,7 +7,8 @@ from flask import Flask, jsonify, request, send_file
 from flask_cors import CORS
 from dotenv import load_dotenv
 
-from gen_podcast import create_podcast, create_emotional_podcast
+from gen_podcast import create_podcast
+# from gen_podcast import create_emotional_podcast
 
 # Set up OpenAI API credentials
 load_dotenv()
@@ -75,9 +76,9 @@ def create_post():
     tone = data.get('tone')  # get parameter called 'tone'
     
     if tone.lower().contains("emotional"):
-        share_url = create_emotional_podcast(topic, duration, tone)
+        url = create_podcast(topic, duration, tone)
         try_append( "\n" + topic + "\n" + duration + "\n" + tone + "\n" + share_url + "\n")
-        return jsonify({"share_url": share_url}), 200
+        return jsonify({"share_url": url}), 200
     else:
         create_podcast(topic, duration, tone)
         # Upload to S3

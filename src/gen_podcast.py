@@ -17,7 +17,7 @@ from pydub import AudioSegment
 
 from dotenv import load_dotenv
 
-from create_episode import generate_episode
+# from create_episode import generate_episode
 # from eleven import elevenlabs
 load_dotenv()
 
@@ -259,10 +259,10 @@ def create_podcast(topic, duration, tone):
 #     synthesize_speech_eleven(story)
 #     return story
 
-def create_emotional_podcast(topic):
-    enriched_topic_info = enrich_topic(topic)
-    share_url = generate_episode(enriched_topic_info, topic)
-    return share_url
+# def create_emotional_podcast(topic, d, o):
+#     enriched_topic_info = enrich_topic(topic)
+#     share_url = generate_episode(enriched_topic_info, topic)
+#     return share_url
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Podcast Generator')
@@ -278,4 +278,4 @@ if __name__ == '__main__':
     # duration = 10
     
     # create_podcast(topic, duration, tone)
-    create_emotional_podcast(topic)
+    create_podcast(topic, duration, tone)

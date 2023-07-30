@@ -2,6 +2,7 @@
 
 To run podcast generation:
 ```
+source setup_env.sh
 python src/gen_podcast.py -o "Pretencious" -t "The Anthropic AI Hackathon" -d 2
 ```
 
