@@ -4,7 +4,6 @@ import base64
 from generate_audio import generate_podcast
 from generate_video import generate_image
 
-
 def authorize_upload(path):
     print("Authorizing upload...")
     # Get the filename from the path
