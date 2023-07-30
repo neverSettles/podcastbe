@@ -23,10 +23,11 @@ class Chat:
         self.messages = []
 
     def response(self, prompt):
+        openai.api_key = os.getenv("OPENAI_API_KEY")
         self.messages.append({"role": "user", "content": prompt})
         response = openai.ChatCompletion.create(
-            #           model="gpt-3.5-turbo",
-            model="gpt-4-0314",
+                      model="gpt-3.5-turbo",
+            # model="gpt-4-0314",
             messages=self.messages,
             #         max_tokens=200
         )

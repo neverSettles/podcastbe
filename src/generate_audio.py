@@ -125,7 +125,7 @@ def voice_choice(host_list):
     return host_voice
 
 
-def generate_podcast(user_text):
+def generate_podcast(user_text, original_prompt):
     print("Generating podcast on %s" % (user_text))
     print("Generating Podcast Hosts")
     character_count = str(random.randint(MIN_HOSTS, MAX_HOSTS))
@@ -273,10 +273,11 @@ def generate_podcast(user_text):
     combined_audio_segment = combine_audio_segments(audio_segments)
 
     # Convert user_text to snake case file name
-    filename = user_text[:30].lower().replace(" ", "_")
+    filename = original_prompt[:30].lower().replace(" ", "_")
     combined_audio_segment.export(f"output/{filename}.mp3", format="mp3")
+    combined_audio_segment.export(f"output/speech.mp3", format="mp3")
     return f"output/{filename}.mp3"
 
 
 if __name__ == "__main__":
-    generate_podcast("Who was responsible for the atom bomb")
+    generate_podcast("Who was responsible for the atom bomb", "Who was responsible for the atom bomb")

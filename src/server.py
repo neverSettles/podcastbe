@@ -7,7 +7,7 @@ from flask import Flask, jsonify, request, send_file
 from flask_cors import CORS
 from dotenv import load_dotenv
 
-from generate import gen_podcast
+from gen_podcast import create_podcast, create_emotional_podcast
 
 # Set up OpenAI API credentials
 load_dotenv()
@@ -55,25 +55,26 @@ def create_post():
     duration = data.get('duration')  # get parameter called 'duration'
     tone = data.get('tone')  # get parameter called 'tone'
     
-    transcript = gen_podcast.create_podcast(topic, duration, tone)
+    if tone.lower().contains("emotional"):
+        share_url = create_emotional_podcast(topic, duration, tone)
+        return jsonify({"share_url": share_url}), 200
+    else:
+        create_podcast(topic, duration, tone)
+        # Upload to S3
+        try:
+            ensure_bucket_exists('podcast-generator')
+            s3.upload_file('./output/speech.mp3', 'podcast-generator', 'speech.mp3')
+            print("Upload Successful")
+            url = s3.generate_presigned_url('get_object', Params={'Bucket': 'podcast-generator', 'Key': 'speech.mp3'}, ExpiresIn=3600)
+            print(url)
 
-    # Upload to S3
-    try:
-        ensure_bucket_exists('podcast-generator')
-        s3.upload_file('./output/speech.mp3', 'podcast-generator', 'speech.mp3')
-        print("Upload Successful")
-        url = s3.generate_presigned_url('get_object', Params={'Bucket': 'podcast-generator', 'Key': 'speech.mp3'}, ExpiresIn=3600)
-        print(url)
+            return jsonify({"url": url}), 200
+            
+        except FileNotFoundError:
+            print("The file was not found")
+        except NoCredentialsError:
+            print("Credentials not available")
 
-        return jsonify({"url": url}), 200
-        
-    except FileNotFoundError:
-        print("The file was not found")
-    except NoCredentialsError:
-        print("Credentials not available")
-
-
-    # return send_file('../output/speech.mp3', mimetype="audio/mp3"), 200
 
 @app.route('/generate/demo', methods=['POST'])
 def create_post_demo():
@@ -83,7 +84,7 @@ def create_post_demo():
     duration = data.get('duration')  # get parameter called 'duration'
     tone = data.get('tone')  # get parameter called 'tone'
     
-    transcript = gen_podcast.create_podcast_expensive(topic, duration, tone)
+    transcript = create_podcast(topic, duration, tone)
     return send_file('../output/speech.mp3', mimetype="audio/mp3"), 200
 
 

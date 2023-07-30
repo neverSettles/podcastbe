@@ -111,8 +111,8 @@ def upload_image_to_imgur(image_path, client_id):
     return link
 
 
-def generate_episode(prompt):
-    audio_file = generate_podcast(prompt)
+def generate_episode(prompt, original_prompt):
+    audio_file = generate_podcast(prompt, original_prompt)
     upload_url, audio_url, content_type = authorize_upload(audio_file)
     upload_file(audio_file, upload_url, content_type)
 
@@ -122,14 +122,15 @@ def generate_episode(prompt):
 
     episode_id, share_url = create_episode(
         "podcraft",
-        title=prompt,
-        summary=prompt,
+        title=original_prompt,
+        summary=original_prompt,
         audio_url=audio_url,
         image_url=image_url,
     )
     publish_episode(episode_id)
     print(f"Podcast published at {share_url}.")
+    return share_url
 
 
 if __name__ == "__main__":
-    generate_episode("Compare RNNs with Transformers")
+    generate_episode("Compare RNNs with Transformers", "Compare RNNs with Transformers")

@@ -17,15 +17,16 @@ from pydub import AudioSegment
 
 from dotenv import load_dotenv
 
+from create_episode import generate_episode
 # from eleven import elevenlabs
 load_dotenv()
 
 
 def call_anthropic_api(prompt):
+    api_key = os.getenv("ANTHROPIC_API_KEY")
     anthropic = Anthropic(
         api_key=api_key,
     )
-    api_key = os.getenv("ANTHROPIC_API_KEY")
     completion = anthropic.completions.create(
         model="claude-2",
         max_tokens_to_sample=5000,
@@ -127,6 +128,55 @@ def get_serpapi_search_results(query):
     else:
         return None
 
+def enrich_topic(topic):
+    relevance_prompt = f"""
+    Help me identify the most important pieces of information we need to search up on Google 
+    in order to gather recent relevant knowledge to generate a podcast. 
+    Output the most relevant part of the topic the user entered which we should search up on Google.
+    Topic: {topic}
+    The output format should look like this:
+    {{
+        "google_search_topic": "IDENTIFIED_TOPIC"
+    }}
+"""
+    # Get the most relevant search topic
+    # Try 3 times before failing
+    i = 0
+    while True:
+        try:
+            relevant_search_topics = call_anthropic_api(relevance_prompt)
+            
+            relevant_search_topics = json.loads(relevant_search_topics)
+            relevant_search_topic = relevant_search_topics['google_search_topic']
+
+            # relevant_search_topic = prompt
+
+            print('relevant_search_topic')
+            print(relevant_search_topic)
+
+            # Get the top 10 results from Google
+            google_search_results = get_serpapi_search_results(relevant_search_topic)
+            print(google_search_results)
+            print('google_search_results')
+
+            added_prompt = "Enriched information that we pulled from the web about the topic that the user provided:\n\n"
+            if google_search_results:
+                for result in google_search_results['organic_results']:
+                    if 'snippet' in result:
+                        added_prompt += result['snippet'] + "\n\n"
+                break
+        except:
+            i += 1
+            if i > 3:
+                break
+            continue
+
+
+    print('added_prompt')
+    print(added_prompt)
+
+    return topic + "\n\n" + added_prompt
+
 def create_podcast_prompt(topic, duration, tone):
     # Create the podcast prompt
 #     meta_prompt = f"""
@@ -140,41 +190,7 @@ def create_podcast_prompt(topic, duration, tone):
 # Please only output a prompt that I can use to send to GPT.
 # """
 
-    relevance_prompt = f"""
-    Help me identify the most important pieces of information we need to search up on Google 
-    in order to gather recent relevant knowledge to generate a podcast. 
-    Output the most relevant part of the topic the user entered which we should search up on Google.
-    Topic: {topic}
-    The output format should look like this:
-    {{
-        "google_search_topic": "IDENTIFIED_TOPIC"
-    }}
-"""
-
-    relevant_search_topics = call_openai_api(relevance_prompt)
-    
-    relevant_search_topics = json.loads(relevant_search_topics)
-    relevant_search_topic = relevant_search_topics['google_search_topic']
-
-    relevant_search_topic = topic
-
-    print('relevant_search_topic')
-    print(relevant_search_topic)
-
-    # Get the top 10 results from Google
-    google_search_results = get_serpapi_search_results(relevant_search_topic)
-    print(google_search_results)
-    print('google_search_results')
-
-    added_prompt = ""
-    if google_search_results:
-        for result in google_search_results['organic_results']:
-            if 'snippet' in result:
-                added_prompt += result['snippet'] + "\n\n"
-
-
-    print('added_prompt')
-    print(added_prompt)
+    enriched_topic_info = enrich_topic(topic)
 
     # For each result, get the text from the page
 
@@ -189,7 +205,7 @@ The {content_type} should be with 1 person only, and not try to switch between m
 The {content_type} should seem like a fluid conversation, without breaks in the conversation.
 The text of the response should be the transcript of the {content_type}.
 There should be no seperator between the segments, so that the {content_type} is one continuous audio file.
-The added recent context that we found about the user's topic is: {added_prompt}
+{enriched_topic_info}
 """
     return prompt
 
@@ -232,21 +248,21 @@ def create_podcast(topic, duration, tone):
 
     return story
 
-def create_podcast_expensive(topic, duration, tone):
-    prompt = create_podcast_prompt(topic, duration, tone)
+# def create_podcast_expensive(topic, duration, tone):
+#     prompt = create_podcast_prompt(topic, duration, tone)
+#     print(prompt)
+#     story = call_anthropic_api(prompt)
 
-    print(prompt)
+#     print("Here is the story:")
+#     print(story)
 
-    story = call_openai_api(prompt)
+#     synthesize_speech_eleven(story)
+#     return story
 
-    print("Here is the story:")
-    print(story)
-
-    synthesize_speech_eleven(story)
-
-
-
-    return story
+def create_emotional_podcast(topic):
+    enriched_topic_info = enrich_topic(topic)
+    share_url = generate_episode(enriched_topic_info, topic)
+    return share_url
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Podcast Generator')
@@ -261,4 +277,5 @@ if __name__ == '__main__':
     # topic = "Finding a girlfriend in the bay area as an Indian Software Engineer"
     # duration = 10
     
-    create_podcast_expensive(topic, duration, tone)
+    # create_podcast(topic, duration, tone)
+    create_emotional_podcast(topic)
