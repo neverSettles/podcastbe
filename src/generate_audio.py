@@ -8,11 +8,12 @@ import random
 import re
 import time
 from anthropic import Anthropic, HUMAN_PROMPT, AI_PROMPT
-from elevenlabslib import *
 import numpy as np
 from pydub import AudioSegment
 from dotenv import load_dotenv
 import os
+import requests
+import json
 
 load_dotenv()
 
@@ -27,8 +28,6 @@ anthropic = Anthropic(
     api_key=api_key,
 )
 
-eleven_labs_api_key = os.getenv("ELEVEN_LABS_API_KEY")
-user = ElevenLabsUser(eleven_labs_api_key)
 
 
 def generate(prompt):
@@ -123,7 +122,6 @@ def voice_choice(host_list):
         else:
             host_voice[host] = female_voices[random.randint(0, len(female_voices) - 1)]
     return host_voice
-
 
 def generate_podcast(user_text, original_prompt):
     print("Generating podcast on %s" % (user_text))
@@ -252,13 +250,56 @@ def generate_podcast(user_text, original_prompt):
             sample_width=sample_width,
             channels=channels,
         )
+    
+    def get_voice_id(json_data, voice_name):
+        data = json.loads(json_data)
+        for voice in data['voices']:
+            if voice['name'] == voice_name:
+                return voice['voice_id']
+        return None
 
     def dict_to_audio(dialogue_dict, filename="audio"):
         string = ""
         for key, value in dialogue_dict.items():
             string += f"{key}: {value} "
-            voice = user.get_voices_by_name(host_voice[key])[0]
-            audio_bytes = voice.generate_audio_bytes(value)
+            print("string chris")
+            print(string)
+            
+            eleven_labs_api_key = os.getenv("ELEVEN_LABS_API_KEY")
+            url_voices = "https://api.elevenlabs.io/v1/voices"
+
+            headers_voices = {
+            "Accept": "application/json",
+            "xi-api-key": eleven_labs_api_key
+            }
+            response_voices = requests.get(url_voices, headers=headers_voices)
+            response_voices = json.loads(response_voices.text)
+
+            # user = ElevenLabsUser(eleven_labs_api_key)
+            # voice = user.get_voices_by_name(host_voice[key])[0]
+            print(response_voices)
+            voice_id = get_voice_id(response_voices, host_voice[key])
+            url = "https://api.elevenlabs.io/v1/text-to-speech/" + voice_id
+
+
+            headers = {
+            "Accept": "audio/mpeg",
+            "Content-Type": "application/json",
+            "xi-api-key": eleven_labs_api_key
+            }
+
+            data = {
+                "text": value,
+                "model_id": "eleven_monolingual_v1",
+                "voice_settings": {
+                    "stability": 0.5,
+                    "similarity_boost": 0.5
+                }
+                }
+
+            audio_bytes = requests.post(url, json=data, headers=headers)
+            # voice = response_voices[host_voice[key]]
+            # audio_bytes = voice.generate_audio_bytes(value)
         return bytes_to_audio_segment(audio_bytes)
 
     def combine_audio_segments(audio_segments):
