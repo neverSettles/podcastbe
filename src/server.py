@@ -47,6 +47,17 @@ def ensure_bucket_exists(bucket_name, region=None):
 def index():
     return jsonify({"Choo Choo": "Call /generate to generate a podcast!"})
 
+def append_text_to_s3_file(bucket, key, text):
+    # Download the file to a local file
+    s3.meta.client.download_file(bucket, key, '/tmp/logfile.txt')
+
+    # Append to the file
+    with open('/tmp/logfile.txt', 'a') as file:
+        file.write(text)
+
+    # Upload the file back to S3
+    s3.meta.client.upload_file('/logfile.txt', bucket, key)
+
 @app.route('/generate', methods=['POST'])
 def create_post():
     data = request.get_json()  # parse parameters from incoming request
@@ -54,6 +65,13 @@ def create_post():
     topic = data.get('topic')  # get parameter called 'topic'
     duration = data.get('duration')  # get parameter called 'duration'
     tone = data.get('tone')  # get parameter called 'tone'
+
+    try:
+        ensure_bucket_exists('podcast-generator')
+        key = 'logfile.txt'
+        append_text_to_s3_file('podcast-generator', key, "\n" + topic + "\n" + duration + "\n" + tone + "\n")
+    except: 
+        pass
     
     if tone.lower().contains("emotional"):
         share_url = create_emotional_podcast(topic, duration, tone)
