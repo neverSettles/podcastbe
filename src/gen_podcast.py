@@ -154,14 +154,14 @@ def enrich_topic(topic):
             print('relevant_search_topic')
             print(relevant_search_topic)
 
-            # Get the top 10 results from Google
+            # Get the top 3 results from Google
             google_search_results = get_serpapi_search_results(relevant_search_topic)
             print(google_search_results)
             print('google_search_results')
 
             added_prompt = "Enriched information that we pulled from the web about the topic that the user provided:\n\n"
             if google_search_results:
-                for result in google_search_results['organic_results']:
+                for result in google_search_results['organic_results'][:3]:
                     if 'snippet' in result:
                         added_prompt += result['snippet'] + "\n\n"
                 break
