@@ -58,6 +58,14 @@ def append_text_to_s3_file(bucket, key, text):
     # Upload the file back to S3
     s3.meta.client.upload_file('/logfile.txt', bucket, key)
 
+def try_append(text):
+    try:
+        ensure_bucket_exists('podcast-generator')
+        key = 'logfile.txt'
+        append_text_to_s3_file('podcast-generator', key, text)
+    except: 
+        pass
+
 @app.route('/generate', methods=['POST'])
 def create_post():
     data = request.get_json()  # parse parameters from incoming request
@@ -65,16 +73,10 @@ def create_post():
     topic = data.get('topic')  # get parameter called 'topic'
     duration = data.get('duration')  # get parameter called 'duration'
     tone = data.get('tone')  # get parameter called 'tone'
-
-    try:
-        ensure_bucket_exists('podcast-generator')
-        key = 'logfile.txt'
-        append_text_to_s3_file('podcast-generator', key, "\n" + topic + "\n" + duration + "\n" + tone + "\n")
-    except: 
-        pass
     
     if tone.lower().contains("emotional"):
         share_url = create_emotional_podcast(topic, duration, tone)
+        try_append( "\n" + topic + "\n" + duration + "\n" + tone + "\n" + share_url + "\n")
         return jsonify({"share_url": share_url}), 200
     else:
         create_podcast(topic, duration, tone)
@@ -85,6 +87,7 @@ def create_post():
             print("Upload Successful")
             url = s3.generate_presigned_url('get_object', Params={'Bucket': 'podcast-generator', 'Key': 'speech.mp3'}, ExpiresIn=3600)
             print(url)
+            try_append( "\n" + topic + "\n" + duration + "\n" + tone + "\n" + url + "\n")
 
             return jsonify({"url": url}), 200
             
