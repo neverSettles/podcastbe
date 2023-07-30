@@ -5,6 +5,11 @@ To run podcast generation:
 python src/generate/gen_podcast.py -d 5 -t "Social media and the brain" -o "Pretencious"
 ```
 
+To run high quality podcast generation:
+```
+python src/eleven/generate_audio.py
+```
+
 To run server:
 
 ```
@@ -12,7 +17,12 @@ source setup_env.sh
 python src/server.py
 ```
 
-Update 
+Run 
+```
+cp .env.example .env
+```
+
+And then edit the 
 `.env` file to include the following keys:
 
 ```
