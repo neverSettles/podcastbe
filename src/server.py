@@ -77,7 +77,7 @@ def create_post():
     
     if tone.lower().contains("emotional"):
         url = create_podcast(topic, duration, tone)
-        try_append( "\n" + topic + "\n" + duration + "\n" + tone + "\n" + share_url + "\n")
+        try_append( "\n" + topic + "\n" + duration + "\n" + tone + "\n" + url + "\n")
         return jsonify({"share_url": url}), 200
     else:
         create_podcast(topic, duration, tone)
