@@ -8,6 +8,7 @@ from moviepy.editor import *
 import openai
 from dotenv import load_dotenv
 import os
+
 load_dotenv()
 
 
@@ -83,20 +84,23 @@ def generate_image(user_text, return_val="img"):
                 )
             if artifact.type == generation.ARTIFACT_IMAGE:
                 img = Image.open(io.BytesIO(artifact.binary))
-                image_name = f"output/{user_text[:30]}.png"
+                filename = user_text[:30].lower().replace(" ", "_")
+                image_name = f"output/{filename}.png"
                 img.save(image_name)
                 return image_name
 
 
-user_text = "Cassandra Database Change Data Capture"
-print(f"Generating image for '{user_text}'...")
-image_name = generate_image(user_text)
+if __name__ == "__main__":
+    user_text = "Cassandra Database Change Data Capture"
+    print(f"Generating image for '{user_text}'...")
+    image_name = generate_image(user_text)
+    print(f"Generated image.")
 
-print(f"Generated image. Now generating video...")
-audioclip = AudioFileClip("output/combined_audio.mp3")
-imgclip = ImageClip(image_name)
-imgclip = imgclip.set_duration(audioclip.duration)
-videoclip = imgclip.set_audio(audioclip)
-videoclip.write_videofile(
-    f"output/{user_text[:30]}.mp4", codec="libx264", audio_codec="aac", fps=24
-)
+# print(f"Generating video for '{user_text}'...")
+# audioclip = AudioFileClip("output/combined_audio.mp3")
+# imgclip = ImageClip(image_name)
+# imgclip = imgclip.set_duration(audioclip.duration)
+# videoclip = imgclip.set_audio(audioclip)
+# videoclip.write_videofile(
+#     f"output/{user_text[:30]}.mp4", codec="libx264", audio_codec="aac", fps=24
+# )

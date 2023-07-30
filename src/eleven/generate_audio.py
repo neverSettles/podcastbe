@@ -13,11 +13,14 @@ import numpy as np
 from pydub import AudioSegment
 from dotenv import load_dotenv
 import os
+
 load_dotenv()
 
 
-TOTAL_PARTS = 1
-PARTS_PER_SECTION = 1
+TOTAL_PARTS = 3
+PARTS_PER_SECTION = 2
+MIN_HOSTS = 2
+MAX_HOSTS = 2
 
 api_key = os.getenv("ANTHROPIC_API_KEY")
 anthropic = Anthropic(
@@ -125,7 +128,7 @@ def voice_choice(host_list):
 def generate_podcast(user_text):
     print("Generating podcast on %s" % (user_text))
     print("Generating Podcast Hosts")
-    character_count = str(random.randint(2, 3))
+    character_count = str(random.randint(MIN_HOSTS, MAX_HOSTS))
     character_prompt = f"""
     Generate the names and descriptions of {character_count} podcast personalities for a podcast about {user_text}.
     """
@@ -145,7 +148,7 @@ def generate_podcast(user_text):
     print("Generating High-Level Podcast Outline")
     outline_prompt = f"""Write a {TOTAL_PARTS}-part outline for a podcast on {user_text} with headings in the format \n 1. <section 1>\n 2. <section 2>\n 3. ... \n Do not include any subpoints for each numbered item.\n\n
     Every outline part must be a full sentence, specifying the content covered in that part of the podcast in complex detail.
-    Be incredibly creative, technically accurate and piercing with insight.
+    The first part should include high-level overview of the podcast with an introudction of the hosts.
     """
     outline_raw = generate(outline_prompt)
     outline_list = []
@@ -154,6 +157,7 @@ def generate_podcast(user_text):
             outline_list.append(i.split(". ")[1].strip())
         except:
             pass
+    print("Outline:", outline_list)
 
     print("Generating Outline Subsections")
     subsections = []
@@ -162,6 +166,7 @@ def generate_podcast(user_text):
                 Write a %s-part subsection outline for a podcast on %s with outline %s where this particular subsection is on %s. ONLY include content specific to this particular subsection on %s. with headings in the format \n 1. <section 1>\n 2. <section 2>\n 3. ... \n Do not include any subpoints for each numbered item.\n\n
                 Make sure the section addresses content that is unique to its part of the podcast. \n
                 Every subsection outline part must be a full sentence, specifying the content covered in that part of the podcast in complex detail. Be incredibly creative, technically accurate and piercing with insight.
+                If this is the introduction, make sure to include at least a subsection for a broad introduction, and a subsection introducing the hosts.
                 """ % (
             str(PARTS_PER_SECTION),
             user_text,
@@ -201,9 +206,9 @@ def generate_podcast(user_text):
         Make sure the podcast addresses content that is unique to its part of the outline, {subsection}. Do not focus on content addressed elsewhere in the outline. \n
         Do not include any headings or subheadings. \n
         The podcast hosts are {', '.join(character_list)}. Have them take turns addressing one another.
-        Do not introduce the podcast or any of the characters.
+        If this is the first section, make sure to provide a high-level overview and introduce the hosts.
         This section is likely in the middle of the podcast, so do not start or end the podcast.
-        The speakers must go back and forth at least 10 times.
+        The speakers must go back and forth at least 4 times.
         Generate more than 100 tokens.
         Add XML tags surrounding each speaker's text.
         """
@@ -268,9 +273,10 @@ def generate_podcast(user_text):
     combined_audio_segment = combine_audio_segments(audio_segments)
 
     # Convert user_text to snake case file name
-    filename = user_text.lower().replace(" ", "_")
+    filename = user_text[:30].lower().replace(" ", "_")
     combined_audio_segment.export(f"output/{filename}.mp3", format="mp3")
+    return f"output/{filename}.mp3"
 
 
 if __name__ == "__main__":
-    generate_podcast("Claude, the AI that writes podcasts")
+    generate_podcast("Who was responsible for the atom bomb")
