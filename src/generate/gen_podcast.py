@@ -5,14 +5,28 @@ import uuid
 import io
 import time
 import argparse
+import json
+import requests
 from dotenv import load_dotenv
 
 # from eleven import elevenlabs
 load_dotenv()
-openai.api_key = os.getenv("OPENAI_API_KEY")
 
+
+def call_anthropic_api(prompt):
+    anthropic = Anthropic(
+        api_key=api_key,
+    )
+    api_key = os.getenv("ANTHROPIC_API_KEY")
+    completion = anthropic.completions.create(
+        model="claude-2",
+        max_tokens_to_sample=5000,
+    prompt=f"{HUMAN_PROMPT}{prompt}{AI_PROMPT}",
+    )
+    return completion.completion
 
 def call_openai_api(prompt):
+    openai.api_key = os.getenv("OPENAI_API_KEY")
     # Define the parameters for the completion
     params = {
         'model': 'text-davinci-003',  # The model you want to use
@@ -90,6 +104,20 @@ def synthesize_speech_eleven(text):
     convert_to_speech_eleven(text, 'output/speech')
     print('output saved in output/speech.mp3')
 
+def get_serpapi_search_results(query):
+    base_url = "https://serpapi.com/search"
+    params = {
+        'q': query,
+        'api_key': os.getenv("SERPAPI_API_KEY"),
+    }
+    response = requests.get(base_url, params=params)
+
+    if response.status_code == 200:
+        print(json.loads(response.text))
+        # 1/0
+        return json.loads(response.text)
+    else:
+        return None
 
 def create_podcast_prompt(topic, duration, tone):
     # Create the podcast prompt
@@ -104,6 +132,44 @@ def create_podcast_prompt(topic, duration, tone):
 # Please only output a prompt that I can use to send to GPT.
 # """
 
+    relevance_prompt = f"""
+    Help me identify the most important pieces of information we need to search up on Google 
+    in order to gather recent relevant knowledge to generate a podcast. 
+    Output the most relevant part of the topic the user entered which we should search up on Google.
+    Topic: {topic}
+    The output format should look like this:
+    {{
+        "google_search_topic": "IDENTIFIED_TOPIC"
+    }}
+"""
+
+    relevant_search_topics = call_openai_api(relevance_prompt)
+    
+    relevant_search_topics = json.loads(relevant_search_topics)
+    relevant_search_topic = relevant_search_topics['google_search_topic']
+
+    relevant_search_topic = topic
+
+    print('relevant_search_topic')
+    print(relevant_search_topic)
+
+    # Get the top 10 results from Google
+    google_search_results = get_serpapi_search_results(relevant_search_topic)
+    print(google_search_results)
+    print('google_search_results')
+
+    added_prompt = ""
+    if google_search_results:
+        for result in google_search_results['organic_results']:
+            if 'snippet' in result:
+                added_prompt += result['snippet'] + "\n\n"
+
+
+    print('added_prompt')
+    print(added_prompt)
+
+    # For each result, get the text from the page
+
     content_type = "story" if tone == "Story" else "podcast"
 
     prompt = f"""
@@ -114,7 +180,9 @@ I would like to reiterate, emphasize the {tone} tone. Be very {tone} please. It 
 The {content_type} should be with 1 person only, and not try to switch between multiple people.
 The {content_type} should seem like a fluid conversation, without breaks in the conversation.
 The text of the response should be the transcript of the {content_type}.
-There should be no seperator between the segments, so that the {content_type} is one continuous audio file."""
+There should be no seperator between the segments, so that the {content_type} is one continuous audio file.
+The added recent context that we found about the user's topic is: {added_prompt}
+"""
     return prompt
 
 def create_podcast(topic, duration, tone):
@@ -185,4 +253,4 @@ if __name__ == '__main__':
     # topic = "Finding a girlfriend in the bay area as an Indian Software Engineer"
     # duration = 10
     
-    create_podcast(topic, duration, tone)
+    create_podcast_expensive(topic, duration, tone)
