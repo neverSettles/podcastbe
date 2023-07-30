@@ -12,7 +12,6 @@ import random
 import re
 import time
 from anthropic import Anthropic, HUMAN_PROMPT, AI_PROMPT
-from elevenlabslib import *
 import numpy as np
 from pydub import AudioSegment
 
@@ -20,8 +19,6 @@ from dotenv import load_dotenv
 
 # from eleven import elevenlabs
 load_dotenv()
-
-
 
 
 def call_anthropic_api(prompt):
