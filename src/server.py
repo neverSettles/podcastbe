@@ -77,7 +77,7 @@ def create_post():
     
     if tone.lower().contains("emotional"):
         url = create_podcast(topic, duration, tone)
-        try_append( "\n" + topic + "\n" + duration + "\n" + tone + "\n" + url + "\n")
+        try_append( "\n" + topic + "\n" + str(duration) + "\n" + tone + "\n" + url + "\n")
         return jsonify({"share_url": url}), 200
     else:
         create_podcast(topic, duration, tone)
@@ -88,7 +88,7 @@ def create_post():
             print("Upload Successful")
             url = s3.generate_presigned_url('get_object', Params={'Bucket': 'podcast-generator', 'Key': 'speech.mp3'}, ExpiresIn=3600)
             print(url)
-            try_append( "\n" + topic + "\n" + duration + "\n" + tone + "\n" + url + "\n")
+            try_append( "\n" + topic + "\n" + str(duration) + "\n" + tone + "\n" + url + "\n")
 
             return jsonify({"url": url}), 200
             
