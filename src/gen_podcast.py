@@ -104,7 +104,6 @@ def convert_to_speech_eleven(text, filename):
     with open(filename + '.mp3', 'wb') as f:
         for chunk in response.iter_content(chunk_size=CHUNK_SIZE):
             if chunk:
-                print(chunk)
                 f.write(chunk)
 
 
