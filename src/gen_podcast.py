@@ -219,7 +219,7 @@ def create_podcast(topic, duration, tone):
     print("Here is the story:")
     print(story)
 
-    sythesize_speech_aws(story)
+    synthesize_speech_eleven(story)
 
     # Generate a UUID
     folder_name = str(uuid.uuid4())
@@ -248,16 +248,16 @@ def create_podcast(topic, duration, tone):
 
     return story
 
-# def create_podcast_expensive(topic, duration, tone):
-#     prompt = create_podcast_prompt(topic, duration, tone)
-#     print(prompt)
-#     story = call_anthropic_api(prompt)
+def create_podcast_expensive(topic, duration, tone):
+    prompt = create_podcast_prompt(topic, duration, tone)
+    print(prompt)
+    story = call_openai_api(prompt)
 
-#     print("Here is the story:")
-#     print(story)
+    print("Here is the story:")
+    print(story)
 
-#     synthesize_speech_eleven(story)
-#     return story
+    synthesize_speech_eleven(story)
+    return story
 
 # def create_emotional_podcast(topic, d, o):
 #     enriched_topic_info = enrich_topic(topic)
