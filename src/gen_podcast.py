@@ -74,7 +74,7 @@ def sythesize_speech_aws(text):
 
     print('output saved in output/speech.mp3')
 
-elevenlabs_api_key = os.getenv("ELEVENLABS_API_KEY")
+elevenlabs_api_key = os.getenv("ELEVEN_LABS_API_KEY")
 
 def convert_to_speech_eleven(text, filename):
     print('synthesizing speech')
@@ -104,6 +104,7 @@ def convert_to_speech_eleven(text, filename):
     with open(filename + '.mp3', 'wb') as f:
         for chunk in response.iter_content(chunk_size=CHUNK_SIZE):
             if chunk:
+                print(chunk)
                 f.write(chunk)
 
 
@@ -149,7 +150,7 @@ def enrich_topic(topic):
             relevant_search_topics = json.loads(relevant_search_topics)
             relevant_search_topic = relevant_search_topics['google_search_topic']
 
-            # relevant_search_topic = prompt
+            relevant_search_topic = topic
 
             print('relevant_search_topic')
             print(relevant_search_topic)
