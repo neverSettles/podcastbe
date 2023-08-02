@@ -74,6 +74,7 @@ def create_episode(show_id, title, summary, audio_url, image_url):
     response_json = response.json()
     episode_id = response_json.get("data", {}).get("id")
     share_url = response_json.get("data", {}).get("attributes", {}).get("share_url")
+    share_url = response_json.get("data", {}).get("attributes", {}).get("embed_html")
     return episode_id, share_url
 
 
