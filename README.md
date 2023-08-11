@@ -8,7 +8,7 @@ python src/gen_podcast.py -o "Pretencious" -t "The Anthropic AI Hackathon" -d 2
 
 To run high quality podcast generation:
 ```
-python src/eleven/generate_audio.py
+python src/gen_podcast.py -o "Pretencious" -t "The Anthropic AI Hackathon" -d 2
 ```
 
 To run server:
