@@ -62,9 +62,12 @@ def sythesize_speech_aws(text):
                     aws_secret_access_key=os.getenv('AWS_SECRET_KEY'),
                     region_name=os.getenv('AWS_REGION', 'us-east-1')).client('polly')
 
-    response = polly_client.synthesize_speech(VoiceId='Matthew',
-                OutputFormat='mp3', 
-                Text = text)
+    response = polly_client.synthesize_speech(
+        VoiceId='Matthew',      
+        Engine='neural',
+        OutputFormat='mp3',
+        Text = text
+    )
 
     # The response body contains the audio stream.
     # Writing the stream in a mp3 file
@@ -141,35 +144,30 @@ def enrich_topic(topic):
 """
     # Get the most relevant search topic
     # Try 3 times before failing
-    i = 0
-    while True:
-        try:
-            relevant_search_topics = call_anthropic_api(relevance_prompt)
-            
-            relevant_search_topics = json.loads(relevant_search_topics)
-            relevant_search_topic = relevant_search_topics['google_search_topic']
+    added_prompt = ""
+    try:
+        relevant_search_topics = call_anthropic_api(relevance_prompt)
+        
+        relevant_search_topics = json.loads(relevant_search_topics)
+        relevant_search_topic = relevant_search_topics['google_search_topic']
 
-            relevant_search_topic = topic
+        relevant_search_topic = topic
 
-            print('relevant_search_topic')
-            print(relevant_search_topic)
+        print('relevant_search_topic')
+        print(relevant_search_topic)
 
-            # Get the top 3 results from Google
-            google_search_results = get_serpapi_search_results(relevant_search_topic)
-            print(google_search_results)
-            print('google_search_results')
+        # Get the top 3 results from Google
+        google_search_results = get_serpapi_search_results(relevant_search_topic)
+        print(google_search_results)
+        print('google_search_results')
 
-            added_prompt = "Enriched information that we pulled from the web about the topic that the user provided:\n\n"
-            if google_search_results:
-                for result in google_search_results['organic_results'][:3]:
-                    if 'snippet' in result:
-                        added_prompt += result['snippet'] + "\n\n"
-                break
-        except:
-            i += 1
-            if i > 3:
-                break
-            continue
+        added_prompt = "Enriched information that we pulled from the web about the topic that the user provided:\n\n"
+        if google_search_results:
+            for result in google_search_results['organic_results'][:3]:
+                if 'snippet' in result:
+                    added_prompt += result['snippet'] + "\n\n"
+    except:
+        pass
 
 
     print('added_prompt')
@@ -219,7 +217,8 @@ def create_podcast(topic, duration, tone):
     print("Here is the story:")
     print(story)
 
-    synthesize_speech_eleven(story)
+    sythesize_speech_aws(story)
+    # synthesize_speech_eleven(story)
 
     # Generate a UUID
     folder_name = str(uuid.uuid4())
@@ -277,5 +276,5 @@ if __name__ == '__main__':
     # topic = "Finding a girlfriend in the bay area as an Indian Software Engineer"
     # duration = 10
     
-    # create_podcast(topic, duration, tone)
     create_podcast(topic, duration, tone)
+    # create_emotional_podcast(topic, duration, tone)
