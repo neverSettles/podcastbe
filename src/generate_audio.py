@@ -13,12 +13,13 @@ import numpy as np
 from pydub import AudioSegment
 from dotenv import load_dotenv
 import os
+import boto3
 
 load_dotenv()
 
 
-TOTAL_PARTS = 3
-PARTS_PER_SECTION = 2
+TOTAL_PARTS = 2
+PARTS_PER_SECTION = 1
 MIN_HOSTS = 2
 MAX_HOSTS = 2
 
@@ -83,36 +84,11 @@ def get_gender(host_name):
 
 def voice_choice(host_list):
     male_voices = [
-        "Adam",
-        "Antoni",
-        "Arnold",
-        "Charlie",
-        "Clyde",
-        "Daniel",
-        "Dave",
-        "Ethan",
-        "Giovanni",
-        "James",
-        "Jeremy",
-        "Joseph",
-        "Josh",
-        "Liam",
-        "Patrick",
-        "Sam",
-        "Thomas",
+        "Matthew",
     ]
 
     female_voices = [
-        "Bella",
-        "Charlotte",
-        "Dorothy",
-        "Emily",
-        "Gigi",
-        "Glinda",
-        "Grace",
-        "Nicole",
-        "Rachel",
-        "Serena",
+        "Joanna",
     ]
 
     host_voice = {}
@@ -130,7 +106,7 @@ def generate_podcast(user_text, original_prompt):
     print("Generating Podcast Hosts")
     character_count = str(random.randint(MIN_HOSTS, MAX_HOSTS))
     character_prompt = f"""
-    Generate the names and descriptions of {character_count} podcast personalities for a podcast about {user_text}.
+    Generate the names and descriptions of 2 podcast personalities, 1 male and 1 female, for a podcast about {original_prompt}.
     """
     character_raw = generate(character_prompt)
 
@@ -146,9 +122,9 @@ def generate_podcast(user_text, original_prompt):
     print(host_voice)
 
     print("Generating High-Level Podcast Outline")
-    outline_prompt = f"""Write a {TOTAL_PARTS}-part outline for a podcast on {user_text} with headings in the format \n 1. <section 1>\n 2. <section 2>\n 3. ... \n Do not include any subpoints for each numbered item.\n\n
+    outline_prompt = f"""Write a {TOTAL_PARTS}-part outline for a podcast on {original_prompt} with headings in the format \n 1. <section 1>\n 2. <section 2>\n 3. ... \n Do not include any subpoints for each numbered item.\n\n
     Every outline part must be a full sentence, specifying the content covered in that part of the podcast in complex detail.
-    The first part should include high-level overview of the podcast with an introudction of the hosts.
+    The first part should include high-level overview of the podcast with a brief introudction of the hosts, {character_raw}
     """
     outline_raw = generate(outline_prompt)
     outline_list = []
@@ -169,12 +145,12 @@ def generate_podcast(user_text, original_prompt):
                 If this is the introduction, make sure to include at least a subsection for a broad introduction, and a subsection introducing the hosts.
                 """ % (
             str(PARTS_PER_SECTION),
-            user_text,
+            original_prompt,
             "\n".join(outline_list),
             section,
             section,
         )
-        subsection_raw = generate(outline_prompt)
+        subsection_raw = generate(outline_subsection_prompt)
         subsection_list = []
         for i in subsection_raw.split("\n"):
             try:
@@ -194,10 +170,10 @@ def generate_podcast(user_text, original_prompt):
     print("Generating Podcast Dialogue")
     overall_podcast = []
     podcast_transcript = ""
-    for subsection in overall_outline[:1]:
+    for subsection in overall_outline:
         podcast_transcript = ""
-        for subsection in overall_podcast:
-            for dialogue_snippet in subsection:
+        for subsection_i in overall_podcast:
+            for dialogue_snippet in subsection_i:
                 podcast_transcript += dict_to_string(dialogue_snippet)
         prompt = f"""
         The transcript of the podcast so far is: \n<Transcript Start>\n {podcast_transcript}. \n <Transcript End> \n
@@ -252,13 +228,33 @@ def generate_podcast(user_text, original_prompt):
             sample_width=sample_width,
             channels=channels,
         )
+    
+    def synthesize_speech(voice, text):
+        # Create a client using your AWS access keys stored as environment variables
+        polly_client = boto3.Session(
+                        aws_access_key_id=os.getenv('AWS_ACCESS_KEY'),
+                        aws_secret_access_key=os.getenv('AWS_SECRET_KEY'),
+                        region_name=os.getenv('AWS_REGION', 'us-east-1')).client('polly')
+
+        response = polly_client.synthesize_speech(
+            VoiceId=voice,
+            OutputFormat='mp3',
+            Engine='neural',
+            Text=text
+        )
+
+        # Assuming you've already made the request and have the response
+        audio_stream = response['AudioStream']
+        return audio_stream.read()
 
     def dict_to_audio(dialogue_dict, filename="audio"):
         string = ""
         for key, value in dialogue_dict.items():
             string += f"{key}: {value} "
-            voice = user.get_voices_by_name(host_voice[key])[0]
-            audio_bytes = voice.generate_audio_bytes(value)
+            # replace elevenlabs with aws polly
+            # voice = user.get_voices_by_name(host_voice[key])[0]
+            # audio_bytes = voice.generate_audio_bytes(value)
+            audio_bytes = synthesize_speech(host_voice[key], value)
         return bytes_to_audio_segment(audio_bytes)
 
     def combine_audio_segments(audio_segments):
@@ -278,6 +274,8 @@ def generate_podcast(user_text, original_prompt):
     combined_audio_segment.export(f"output/speech.mp3", format="mp3")
     return f"output/{filename}.mp3"
 
+def gen_once(text):
+    return generate_podcast(text, text)
 
 if __name__ == "__main__":
-    generate_podcast("Who was responsible for the atom bomb", "Who was responsible for the atom bomb")
+    gen_once("How the cross ocean internet cable was laid")
