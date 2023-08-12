@@ -19,7 +19,7 @@ load_dotenv()
 
 
 TOTAL_PARTS = 2
-PARTS_PER_SECTION = 1
+PARTS_PER_SECTION = 2
 MIN_HOSTS = 2
 MAX_HOSTS = 2
 
@@ -106,7 +106,8 @@ def generate_podcast(user_text, original_prompt):
     print("Generating Podcast Hosts")
     character_count = str(random.randint(MIN_HOSTS, MAX_HOSTS))
     character_prompt = f"""
-    Generate the names and descriptions of 2 podcast personalities, 1 male and 1 female, for a podcast about {original_prompt}.
+    Generate the names and descriptions of 2 podcast personalities, 1 male and 1 female, for a podcast about {original_prompt}. 
+    Do not include any periods (.) in their names (Such as Dr. or Mrs.). Spaces in their names are okay though.
     """
     character_raw = generate(character_prompt)
 
@@ -122,11 +123,14 @@ def generate_podcast(user_text, original_prompt):
     print(host_voice)
 
     print("Generating High-Level Podcast Outline")
-    outline_prompt = f"""Write a {TOTAL_PARTS}-part outline for a podcast on {original_prompt} with headings in the format \n 1. <section 1>\n 2. <section 2>\n 3. ... \n Do not include any subpoints for each numbered item.\n\n
-    Every outline part must be a full sentence, specifying the content covered in that part of the podcast in complex detail.
+    outline_prompt = f"""Write a {TOTAL_PARTS}-part outline for a podcast on {original_prompt} with headings in the format 
+    \n 1. <section 1>\n 2. <section 2>\n 3. ... \n Do not include any subpoints for each numbered item.\n\n
+    Every outline part must be 1 and only 1 full sentence, specifying the content covered in that part of the podcast in complex detail.
     The first part should include high-level overview of the podcast with a brief introudction of the hosts, {character_raw}
     """
+    print("outline_prompt ", outline_prompt)
     outline_raw = generate(outline_prompt)
+    print("outline_raw ", outline_raw)
     outline_list = []
     for i in outline_raw.split("\n"):
         try:
@@ -230,7 +234,7 @@ def generate_podcast(user_text, original_prompt):
         )
     
     def synthesize_speech(voice, text):
-        # Create a client using your AWS access keys stored as environment variables
+        # Use Amazon Polly to convert text to speech
         polly_client = boto3.Session(
                         aws_access_key_id=os.getenv('AWS_ACCESS_KEY'),
                         aws_secret_access_key=os.getenv('AWS_SECRET_KEY'),
@@ -278,4 +282,4 @@ def gen_once(text):
     return generate_podcast(text, text)
 
 if __name__ == "__main__":
-    gen_once("How the cross ocean internet cable was laid")
+    gen_once("How to sleep better")
