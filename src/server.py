@@ -80,7 +80,7 @@ def create_post():
         try_append( "\n" + topic + "\n" + str(duration) + "\n" + tone + "\n" + url + "\n")
         return jsonify({"share_url": url}), 200
     else:
-        create_emotional_podcast(topic, duration, tone)
+        create_podcast(topic, duration, tone)
         # Upload to S3
         try:
             ensure_bucket_exists('podcast-generator')
