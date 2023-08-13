@@ -8,7 +8,7 @@ import random
 import re
 import time
 from anthropic import Anthropic, HUMAN_PROMPT, AI_PROMPT
-from elevenlabslib import *
+# from elevenlabslib import *
 import numpy as np
 from pydub import AudioSegment
 from dotenv import load_dotenv
@@ -28,8 +28,8 @@ anthropic = Anthropic(
     api_key=api_key,
 )
 
-eleven_labs_api_key = os.getenv("ELEVEN_LABS_API_KEY")
-user = ElevenLabsUser(eleven_labs_api_key)
+# eleven_labs_api_key = os.getenv("ELEVEN_LABS_API_KEY")
+# user = ElevenLabsUser(eleven_labs_api_key)
 
 
 def generate(prompt):
