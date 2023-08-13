@@ -145,7 +145,7 @@ def enrich_topic(topic):
     # Get the most relevant search topic
     # Try 3 times before failing
     added_prompt = ""
-    if True:
+    try:
         relevant_search_topics = call_anthropic_api(relevance_prompt)
         
         relevant_search_topics = json.loads(relevant_search_topics)
@@ -183,8 +183,8 @@ def enrich_topic(topic):
                     # for rich_snippet in result['rich_snippet_list']:
                     #     if 'snippet' in rich_snippet:
                     #         added_prompt += rich_snippet['snippet'] + "\n\n"
-    # except Exception as e:
-    #     print(f"Caught an exception: {e}")
+    except Exception as e:
+        print(f"Caught an exception: {e}")
 
 
     print('added_prompt')
