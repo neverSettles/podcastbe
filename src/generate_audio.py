@@ -97,9 +97,13 @@ def voice_choice(host_list):
     for host in host_list:
         gender = get_gender(host)
         if gender == "Male":
-            host_voice[host] = male_voices[random.randint(0, len(male_voices) - 1)]
+            voice_idx = random.randint(0, len(male_voices) - 1)
+            host_voice[host] = male_voices[voice_idx]
+            male_voices.pop(voice_idx)
         else:
-            host_voice[host] = female_voices[random.randint(0, len(female_voices) - 1)]
+            voice_idx = random.randint(0, len(female_voices) - 1)
+            host_voice[host] = female_voices[voice_idx]
+            female_voices.pop(voice_idx)
     return host_voice
 
 def synthesize_speech(voice, text):
