@@ -2,6 +2,7 @@ import requests
 import base64
 import os
 from dotenv import load_dotenv
+import time, os, requests, base64
 
 load_dotenv()
 
@@ -23,8 +24,7 @@ def synthesize_text_with_api_key(input_content, output_filename, input_type="tex
         'input': input_data,
         'voice': {
             'languageCode': language_code,
-            'name': voice_name,
-            'ssmlGender': 'FEMALE'
+            'name': voice_name
         },
         'audioConfig': {
             'audioEncoding': 'Linear16'
@@ -48,33 +48,14 @@ def synthesize_text_with_api_key(input_content, output_filename, input_type="tex
 text_input = "Hello from Google Cloud Text-to-Speech using plain text!"
 synthesize_text_with_api_key(text_input, "output_text.mp3", voice_name='en-US-Studio-O', language_code="en-US")
 
-# SSML example
-ssml_input = """<speak><emphasis level="strong">Hello</emphasis> from Google Cloud Text-to-Speech using SSML!</speak>"""
-ssml_input = """<speak>
-    <p>In the heart of a vibrant city, there was a young girl named Cait. Every night, she clutched her favorite stuffed animal, a sloth named <phoneme alphabet="ipa" ph="slɔː.θi">Slothy</phoneme>.</p>
 
-    <p><emphasis level="moderate">"<phoneme alphabet="ipa" ph="slɔː.θi">Slothy</phoneme>,"</emphasis> Cait whispered one evening, her eyes filled with wonder, <emphasis level="moderate">"do you ever wish you could come to life and take me on an adventure?"</emphasis></p>
-    
-    <p>To Cait's surprise, <phoneme alphabet="ipa" ph="slɔː.θi">Slothy</phoneme>'s eyes twinkled. In a soft, slow voice, he replied, <emphasis level="moderate">"Oh, Cait. If I could, I would show you the magical treetops of the rainforest where real sloths live."</emphasis></p>
+text_input = """
+“लाइफ असल में चीज़ो को hold करने और फिर सही समय आने पर उन्हें जाने देने का ही नाम है”-- Zen फिलोसोफी का एक जाना माना कथन 
 
-    <p>As Cait closed her eyes, the room began to transform. The sounds of traffic faded away, replaced by the distant call of exotic birds and the gentle rustling of leaves.</p>
-
-    <p>When she opened her eyes, Cait found herself high up in a giant treehouse. <phoneme alphabet="ipa" ph="slɔː.θi">Slothy</phoneme> was beside her, but he was now as big as her! <emphasis level="strong"><phoneme alphabet="ipa" ph="slɔː.θi">Slothy</phoneme>!</emphasis> Cait exclaimed, hugging her friend. <emphasis level="moderate">"This is amazing!"</emphasis></p>
-
-    <p><phoneme alphabet="ipa" ph="slɔː.θi">Slothy</phoneme> chuckled, <emphasis level="moderate">"Welcome to my world, Cait."</emphasis> He took her by the hand, and together, they explored the enchanted forest. They met colorful birds, playful monkeys, and even other friendly sloths.</p>
-    
-    <p>As the moon began to rise, <phoneme alphabet="ipa" ph="slɔː.θi">Slothy</phoneme> led Cait to a cozy nook in the treehouse. There, they shared stories and giggled under the soft light of fireflies.</p>
-
-    <p><emphasis level="moderate"><phoneme alphabet="ipa" ph="slɔː.θi">Slothy</phoneme>,</emphasis> Cait whispered as her eyelids grew heavy, <emphasis level="moderate">"thank you for this magical night."</emphasis></p>
-    
-    <p><phoneme alphabet="ipa" ph="slɔː.θi">Slothy</phoneme> hugged her tight, <emphasis level="moderate">"Remember, Cait. Even in the heart of the city, magic is just a dream away."</emphasis></p>
-
-    <p>With those words, Cait drifted off to sleep, <phoneme alphabet="ipa" ph="slɔː.θi">Slothy</phoneme> back in his regular stuffed form by her side.</p>
-
-    <p>The next morning, Cait woke up in her own bed, the sounds of the city outside her window. But on her nightstand, there lay a single, beautiful feather, a gentle reminder of the magical adventure she had with her beloved <phoneme alphabet="ipa" ph="slɔː.θi">Slothy</phoneme>.</p>
-
-    <p>And so, each night, Cait drifted off to sleep, knowing that with <phoneme alphabet="ipa" ph="slɔː.θi">Slothy</phoneme> by her side, every dream could become an adventure.</p>
-</speak>
+ये बात कितनी सही है! बचपन से जवानी तक हर इंसान अपना जीवन कुछ बड़ा करने में लगाता है। इस journey में उसे कई सारी चीज़े experience करने का मौका मिलता है। ये बात सच है कि हर एक moment अपने साथ एक नया रंग लेकर आता है और काफी बार हम उसे अच्छे से एक्सेप्ट करते हैं। लेकिन इसके साथ ये भी सच है कि life में कोई भी चीज़ permanent नहीं होती। हर एक चीज़ को कभी न कभी अपने निर्धारित समय पर जाना ही होता है, फिर चाहे वो रिश्ते हो या कोई particular जगह, ये philosophy हर एक element के लिए सच साबित होती है। वैसे आपको पता ही होगा कि हमेशा से ही दुनिया में अलग-अलग प्लेसेस पर different philosophies का importance रहा है। ancient philosophies और school ऑफ़ thoughts हमेशा से ही समाज को एक बेहतर position में place करने में हेल्पफुल रहे हैं। आपने खुद भी अपने चारों ओर काफी सारी ऐसी practices के बारे में सुना होगा जो इससे मेल खाती है। लेकिन क्या आपने कभी Zen नाम की philosophy और उसके elements के बारे में सुना है? अगर आपका जवाब हाँ है तो आप एक extraordinary art को पहले से ही कुछ हद तक appreciate करते होंगे और जिन्होंने इसके बारे में नहीं सुना, उनको भी चिंता करने की ज़रूरत नहीं है। इस स्पेशल episodic journey में हम इसी महान philosophy के बारे में detail से जानेंगे और समझेंगे कि कैसे ये आज भी हमारी लाइफ में relevance रखती है। तो आइये शुरू करते हैं!
 
 """
-synthesize_text_with_api_key(ssml_input, "output_ssml.mp3", input_type="ssml", voice_name='en-US-Neural2-F', language_code="en-US")
+synthesize_text_with_api_key(text_input, "hindi/hindiA.mp3", voice_name='hi-IN-Neural2-A', language_code="hi-IN")
+synthesize_text_with_api_key(text_input, "hindi/hindiB.mp3", voice_name='hi-IN-Neural2-B', language_code="hi-IN")
+synthesize_text_with_api_key(text_input, "hindi/hindiC.mp3", voice_name='hi-IN-Neural2-C', language_code="hi-IN")
+synthesize_text_with_api_key(text_input, "hindi/hindiD.mp3", voice_name='hi-IN-Neural2-D', language_code="hi-IN")
