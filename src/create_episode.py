@@ -111,8 +111,8 @@ def upload_image_to_imgur(image_path, client_id):
     return link
 
 
-def generate_episode(prompt, original_prompt):
-    audio_file = generate_podcast(prompt, original_prompt)
+def generate_episode(prompt, original_prompt, length=60):
+    audio_file = generate_podcast(prompt, original_prompt, 60)
     upload_url, audio_url, content_type = authorize_upload(audio_file)
     upload_file(audio_file, upload_url, content_type)
 
@@ -133,4 +133,4 @@ def generate_episode(prompt, original_prompt):
 
 
 if __name__ == "__main__":
-    generate_episode("Compare RNNs with Transformers", "Compare RNNs with Transformers")
+    generate_episode("Compare RNNs with Transformers", "Compare RNNs with Transformers", 60)

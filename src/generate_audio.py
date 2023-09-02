@@ -19,7 +19,7 @@ load_dotenv()
 
 
 TOTAL_PARTS = 2
-PARTS_PER_SECTION = 1
+PARTS_PER_SECTION = 2
 MIN_HOSTS = 2
 MAX_HOSTS = 2
 
@@ -85,10 +85,12 @@ def get_gender(host_name):
 def voice_choice(host_list):
     male_voices = [
         "Matthew",
+        "Stephen",
     ]
 
     female_voices = [
         "Joanna",
+        "Salli",
     ]
 
     host_voice = {}
@@ -100,9 +102,65 @@ def voice_choice(host_list):
             host_voice[host] = female_voices[random.randint(0, len(female_voices) - 1)]
     return host_voice
 
+def synthesize_speech(voice, text):
+        # Use Amazon Polly to convert text to speech
+        polly_client = boto3.Session(
+                        aws_access_key_id=os.getenv('AWS_ACCESS_KEY'),
+                        aws_secret_access_key=os.getenv('AWS_SECRET_KEY'),
+                        region_name=os.getenv('AWS_REGION', 'us-east-1')).client('polly')
 
-def generate_podcast(user_text, original_prompt):
-    print("Generating podcast on %s" % (user_text))
+        response = polly_client.synthesize_speech(
+            VoiceId=voice,
+            OutputFormat='mp3',
+            Engine='neural',
+            Text=text
+        )
+
+        # Assuming you've already made the request and have the response
+        audio_stream = response['AudioStream']
+        return audio_stream.read()
+
+def bytes_to_audio_segment(
+        audio_bytes, sample_rate=44100, sample_width=2, channels=1
+    ):
+        audio_arr = generate_audio_robust(audio_bytes)
+        return AudioSegment(
+            audio_arr.tobytes(),
+            frame_rate=sample_rate,
+            sample_width=sample_width,
+            channels=channels,
+        )
+
+def generate_audio_robust(audio_bytes, max_retries=10, retry_delay=5):
+        for attempt in range(max_retries):
+            try:
+                audio_arr = np.frombuffer(audio_bytes, dtype=np.int16)
+                print("Success.")
+                return audio_arr
+            except ValueError:
+                print("Hit Exception")
+                if len(audio_bytes) % 2 != 0:
+                    audio_bytes = audio_bytes[:-1]  # remove the last byte
+                    audio_arr = np.frombuffer(audio_bytes, dtype=np.int16)
+                    print("Exception Overcome. Success.")
+                    return audio_arr
+                
+def dict_to_audio(dialogue_dict,host_voice, filename="audio"):
+        string = ""
+        for key, value in dialogue_dict.items():
+            string += f"{key}: {value} "
+            # replace elevenlabs with aws polly
+            # voice = user.get_voices_by_name(host_voice[key])[0]
+            # audio_bytes = voice.generate_audio_bytes(value)
+            print(key, value)
+            audio_bytes = synthesize_speech(host_voice[key], value)
+        return bytes_to_audio_segment(audio_bytes)
+
+
+def generate_podcast(topic_with_google_search_results, original_prompt, duration=60):
+    if duration:
+        TOTAL_PARTS = max(2, duration // 10)
+    print("Generating podcast on %s" % (original_prompt))
     print("Generating Podcast Hosts")
     character_count = str(random.randint(MIN_HOSTS, MAX_HOSTS))
     character_prompt = f"""
@@ -125,6 +183,9 @@ def generate_podcast(user_text, original_prompt):
     print("Generating High-Level Podcast Outline")
     outline_prompt = f"""Write a {TOTAL_PARTS}-part outline for a podcast on {original_prompt} with headings in the format 
     \n 1. <section 1>\n 2. <section 2>\n 3. ... \n Do not include any subpoints for each numbered item.\n\n
+    We did a google search on this topic and found the following results: \n
+    {topic_with_google_search_results}\n
+    If you find any of these google search results useful, feel free to include them in your outline. \n
     Every outline part must be 1 and only 1 full sentence, specifying the content covered in that part of the podcast in complex detail.
     The first part should include high-level overview of the podcast with a brief introudction of the hosts, {character_raw}
     """
@@ -171,29 +232,43 @@ def generate_podcast(user_text, original_prompt):
             overall_outline.append(subsection)
     outline_text = "\n".join(overall_outline)
 
+    print("overall_outline", overall_outline)
+
     print("Generating Podcast Dialogue")
     overall_podcast = []
     podcast_transcript = ""
-    for subsection in overall_outline:
+    for index, subsection in enumerate(overall_outline):
+        # Construct transcript quickly
         podcast_transcript = ""
         for subsection_i in overall_podcast:
             for dialogue_snippet in subsection_i:
-                podcast_transcript += dict_to_string(dialogue_snippet)
+                podcast_transcript += dict_to_string(dialogue_snippet) + '\n'
+        
+        # For this subsection, generate dialogue
         prompt = f"""
+        You are generating dialogue for a podcast on {original_prompt} with outline {outline_text} 
+        where this particular subsection is on {subsection}. 
+        ONLY include content specific to this particular subsection on {subsection}. \n
+        We did a google search on this topic and found the following results: \n
+        {topic_with_google_search_results}\n
+        If any of the results are relevant, feel free to include them in the dialogue you generate. \n
         The transcript of the podcast so far is: \n<Transcript Start>\n {podcast_transcript}. \n <Transcript End> \n
         The outline of the overall podcast is:\n<Outline Start>\n {outline_text}. \n <Outline End> \n
         Write a detailed, conflict rich, emotionally extreme set of podcast interactions on {subsection}, including gripping dialogue, in a style that is emotionally captivating. Be creative.\n
         Make sure the podcast addresses content that is unique to its part of the outline, {subsection}. Do not focus on content addressed elsewhere in the outline. \n
         Do not include any headings or subheadings. \n
         The podcast hosts are {', '.join(character_list)}. Have them take turns addressing one another.
-        If this is the first section, make sure to provide a high-level overview and introduce the hosts.
-        This section is likely in the middle of the podcast, so do not start or end the podcast.
+        {"This is the introduction. Make sure to provide a high-level overview and introduce the hosts." if index == 0  else ""}
+        {"This is the last section. Make sure to provide a high-level overview and conclude the podcast." if index == len(overall_outline) - 1 else ""}
+        {"This section is  in the middle of the podcast, so do not start or end the podcast." if index != 0 and index != len(overall_outline) - 1 else ""}
         The speakers must go back and forth at least 4 times.
         Generate more than 100 tokens.
         Add XML tags surrounding each speaker's text.
         """
         for i, name in enumerate(character_list):
             prompt += f"<Speaker {i+1}>{name}: <dialogue from {name}></Speaker {i+1}>\n"
+        print("prompt", prompt)
+        print("Generating dialogue for subsection %s of %s" % (index, len(overall_outline)))
         dialogue = generate(prompt)
         parsed_text_sequence = parse_podcast_text_sequence(dialogue)
         filtered_list = [
@@ -208,69 +283,13 @@ def generate_podcast(user_text, original_prompt):
         for dialogue_snippet in subsection:
             dialogue_list.append(dialogue_snippet)
 
-    def generate_audio_robust(audio_bytes, max_retries=10, retry_delay=5):
-        for attempt in range(max_retries):
-            try:
-                audio_arr = np.frombuffer(audio_bytes, dtype=np.int16)
-                print("Success.")
-                return audio_arr
-            except ValueError:
-                print("Hit Exception")
-                if len(audio_bytes) % 2 != 0:
-                    audio_bytes = audio_bytes[:-1]  # remove the last byte
-                    audio_arr = np.frombuffer(audio_bytes, dtype=np.int16)
-                    print("Exception Overcome. Success.")
-                    return audio_arr
-
-    def bytes_to_audio_segment(
-        audio_bytes, sample_rate=44100, sample_width=2, channels=1
-    ):
-        audio_arr = generate_audio_robust(audio_bytes)
-        return AudioSegment(
-            audio_arr.tobytes(),
-            frame_rate=sample_rate,
-            sample_width=sample_width,
-            channels=channels,
-        )
-    
-    def synthesize_speech(voice, text):
-        # Use Amazon Polly to convert text to speech
-        polly_client = boto3.Session(
-                        aws_access_key_id=os.getenv('AWS_ACCESS_KEY'),
-                        aws_secret_access_key=os.getenv('AWS_SECRET_KEY'),
-                        region_name=os.getenv('AWS_REGION', 'us-east-1')).client('polly')
-
-        response = polly_client.synthesize_speech(
-            VoiceId=voice,
-            OutputFormat='mp3',
-            Engine='neural',
-            Text=text
-        )
-
-        # Assuming you've already made the request and have the response
-        audio_stream = response['AudioStream']
-        return audio_stream.read()
-
-    def dict_to_audio(dialogue_dict, filename="audio"):
-        string = ""
-        for key, value in dialogue_dict.items():
-            string += f"{key}: {value} "
-            # replace elevenlabs with aws polly
-            # voice = user.get_voices_by_name(host_voice[key])[0]
-            # audio_bytes = voice.generate_audio_bytes(value)
-            audio_bytes = synthesize_speech(host_voice[key], value)
-        return bytes_to_audio_segment(audio_bytes)
-
-    def combine_audio_segments(audio_segments):
-        return sum(audio_segments)
-
     audio_segments = []
     print(f"Generating audio from {len(dialogue_list)} dialogue snippets...")
     for index, dialogue in enumerate(dialogue_list):
         print(f"Generating audio for dialogue {index} of {len(dialogue_list)}...")
         print("Dialogue:", dialogue)
-        audio_segments.append(dict_to_audio(dialogue))
-    combined_audio_segment = combine_audio_segments(audio_segments)
+        audio_segments.append(dict_to_audio(dialogue, host_voice))
+    combined_audio_segment = sum(audio_segments)
 
     # Convert user_text to snake case file name
     filename = original_prompt[:30].lower().replace(" ", "_")
@@ -282,4 +301,7 @@ def gen_once(text):
     return generate_podcast(text, text)
 
 if __name__ == "__main__":
-    gen_once("How to sleep better")
+    gen_once("The optimal safeway in San Francisco to get Groceries at")
+    # x = bytes_to_audio_segment(synthesize_speech('Joanna', 'Hello World'))
+
+    # x.export('test.mp3', format='mp3')

@@ -131,6 +131,14 @@ def get_serpapi_search_results(query):
     else:
         return None
 
+
+from joblib import Memory
+import time
+
+# Choose a location for the cache
+cachedir = './cache_dir'
+memory = Memory(cachedir, verbose=0)
+@memory.cache
 def enrich_topic(topic):
     relevance_prompt = f"""
     Help me identify the most important pieces of information we need to search up on Google 
@@ -167,7 +175,7 @@ def enrich_topic(topic):
         if google_search_results:
             # print('cats')
             # pprint(google_search_results['organic_results'][:1])
-            for result in google_search_results['organic_results'][:1]:
+            for result in google_search_results['organic_results'][:3]:
                 if 'snippet' in result:
                     added_prompt += result['snippet'] + "\n\n"
             #     print('chris1')
@@ -277,7 +285,7 @@ def create_podcast_expensive(topic, duration, tone):
 
 def create_emotional_podcast(topic, d, o):
     enriched_topic_info = enrich_topic(topic)
-    share_url = generate_episode(enriched_topic_info, topic)
+    share_url = generate_episode(enriched_topic_info, topic, d)
     return share_url
 
 if __name__ == '__main__':
@@ -285,6 +293,8 @@ if __name__ == '__main__':
     parser.add_argument('-t', '--topic', required=True,  help='Topic of the podcast')
     parser.add_argument('-d', '--duration', required=True, help='Duration of the podcast in minutes')
     parser.add_argument('-o', '--tone', required=True, help='Tone the speaker should speak in')
+    # Example args:
+    # python src/gen_podcast.py -t "Adam D'Angelo" -d 10 -o "Professional"
     args = parser.parse_args()
     topic = args.topic
     duration = args.duration
