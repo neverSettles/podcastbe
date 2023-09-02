@@ -19,7 +19,7 @@ load_dotenv()
 
 
 TOTAL_PARTS = 2
-PARTS_PER_SECTION = 2
+PARTS_PER_SECTION = 1
 MIN_HOSTS = 2
 MAX_HOSTS = 2
 
@@ -265,8 +265,9 @@ def generate_podcast(topic_with_google_search_results, original_prompt, duration
         {"This is the introduction. Make sure to provide a high-level overview and introduce the hosts." if index == 0  else ""}
         {"This is the last section. Make sure to provide a high-level overview and conclude the podcast." if index == len(overall_outline) - 1 else ""}
         {"This section is  in the middle of the podcast, so do not start or end the podcast." if index != 0 and index != len(overall_outline) - 1 else ""}
-        The speakers must go back and forth at least 4 times.
+        The speakers must go back and forth at least 2 times.
         Generate more than 100 tokens.
+        Generate less than 400 tokens.
         Add XML tags surrounding each speaker's text.
         """
         for i, name in enumerate(character_list):
