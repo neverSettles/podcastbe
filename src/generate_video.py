@@ -26,8 +26,8 @@ class Chat:
         openai.api_key = os.getenv("OPENAI_API_KEY")
         self.messages.append({"role": "user", "content": prompt})
         response = openai.ChatCompletion.create(
-                      model="gpt-3.5-turbo",
-            # model="gpt-4-0314",
+                    #   model="gpt-3.5-turbo",
+            model="gpt-4-0314",
             messages=self.messages,
             #         max_tokens=200
         )
@@ -50,6 +50,7 @@ def generate_description(prompt, system_prompt=""):
     You are an artist who comes up with phenomenal descritptions of images, flush with detail.
     When given a description of a podcast, you come up with an image that it would be wonderful to put as the photo shown in the video of the podcast.
     You describe this image, and only this image, in detail.
+    Make sure the description is completely appropriate, and has no ability to be determined as inappropriate by any reasonable person.
     The description:
     
     """
@@ -59,6 +60,7 @@ def generate_description(prompt, system_prompt=""):
 
 def generate_image(user_text, return_val="img"):
     prompt = generate_description(user_text)
+    print('prompt', prompt)
     answers = stability_api.generate(
         prompt=prompt,
         seed=992446758,  # If a seed is provided, the resulting generated image will be deterministic.
@@ -92,7 +94,7 @@ def generate_image(user_text, return_val="img"):
 
 
 if __name__ == "__main__":
-    user_text = "Cassandra Database Change Data Capture"
+    user_text = "The best cartoons of the 2000s"
     print(f"Generating image for '{user_text}'...")
     image_name = generate_image(user_text)
     print(f"Generated image.")
