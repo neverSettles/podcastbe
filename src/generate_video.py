@@ -51,6 +51,7 @@ def generate_description(prompt, system_prompt=""):
     When given a description of a podcast, you come up with an image that it would be wonderful to put as the photo shown in the video of the podcast.
     You describe this image, and only this image, in detail.
     Make sure the description is completely appropriate, and has no ability to be determined as inappropriate by any reasonable person.
+    Be brief. Generate less than 100 words.
     The description:
     
     """
