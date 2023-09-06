@@ -116,7 +116,7 @@ def generate_episode(prompt, original_prompt, length=60):
     upload_url, audio_url, content_type = authorize_upload(audio_file)
     upload_file(audio_file, upload_url, content_type)
 
-    image_file = generate_image(prompt)
+    image_file = generate_image(original_prompt)
     image_url = upload_image_to_imgur(image_file, "1b765e0d179f29e")
     print(image_url)
 
