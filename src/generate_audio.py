@@ -191,6 +191,9 @@ def generate_podcast(topic_with_google_search_results, original_prompt, duration
     {topic_with_google_search_results}\n
     If you find any of these google search results useful, feel free to include them in your outline. \n
     Every outline part must be 1 and only 1 full sentence, specifying the content covered in that part of the podcast in complex detail.
+    The podcast hosts are {', '.join(character_list)}. Have them take turns addressing one another.
+    The podcast hosts have no ability to talk with anyone else on the show, and only the hosts will be talking together, 
+    so do not assume they will be interviewing anyone.
     The first part should include high-level overview of the podcast with a brief introudction of the hosts, {character_raw}
     """
     print("outline_prompt ", outline_prompt)
