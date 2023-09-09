@@ -191,6 +191,8 @@ def enrich_topic(topic):
                     # for rich_snippet in result['rich_snippet_list']:
                     #     if 'snippet' in rich_snippet:
                     #         added_prompt += rich_snippet['snippet'] + "\n\n"
+        else:
+            added_prompt += str(google_search_results) + "\n\n"
     except Exception as e:
         print(f"Caught an exception: {e}")
 
