@@ -214,6 +214,8 @@ def generate_podcast(topic_with_google_search_results, original_prompt, duration
                 Write a %s-part subsection outline for a podcast on %s with outline %s where this particular subsection is on %s. ONLY include content specific to this particular subsection on %s. with headings in the format \n 1. <section 1>\n 2. <section 2>\n 3. ... \n Do not include any subpoints for each numbered item.\n\n
                 Make sure the section addresses content that is unique to its part of the podcast. \n
                 Every subsection outline part must be a full sentence, specifying the content covered in that part of the podcast in complex detail. Be incredibly creative, technically accurate and piercing with insight.
+                The podcast hosts have no ability to talk with anyone else on the show, and only the hosts will be talking together, 
+                so do not assume they will be interviewing anyone.
                 If this is the introduction, make sure to include at least a subsection for a broad introduction, and a subsection introducing the hosts.
                 """ % (
             str(PARTS_PER_SECTION),
@@ -265,6 +267,8 @@ def generate_podcast(topic_with_google_search_results, original_prompt, duration
         Make sure the podcast addresses content that is unique to its part of the outline, {subsection}. Do not focus on content addressed elsewhere in the outline. \n
         Do not include any headings or subheadings. \n
         The podcast hosts are {', '.join(character_list)}. Have them take turns addressing one another.
+        The podcast hosts have no ability to talk with anyone else on the show, and only the hosts will be talking together, 
+        so do not assume they will be interviewing anyone.
         {"This is the introduction. Make sure to provide a high-level overview and introduce the hosts." if index == 0  else ""}
         {"This is the last section. Make sure to provide a high-level overview and conclude the podcast." if index == len(overall_outline) - 1 else ""}
         {"This section is  in the middle of the podcast, so do not start or end the podcast." if index != 0 and index != len(overall_outline) - 1 else ""}

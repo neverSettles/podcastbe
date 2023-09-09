@@ -167,32 +167,34 @@ def enrich_topic(topic):
         # Get the top 3 results from Google
         google_search_results = get_serpapi_search_results(relevant_search_topic)
         from pprint import pprint
-        pprint(google_search_results)
         print('google_search_results')
+        pprint(google_search_results)
 
         added_prompt = """Here is some information we pulled from Google on the user's query.
-        Use this information if you feel it is relevant.\n\n"""
-        if google_search_results:
-            # print('cats')
-            # pprint(google_search_results['organic_results'][:1])
-            for result in google_search_results['organic_results'][:3]:
-                if 'snippet' in result:
-                    added_prompt += result['snippet'] + "\n\n"
-            #     print('chris1')
-            #     print(result)
-                if 'rich_snippet' in result:
-                    added_prompt += str(result['rich_snippet']) + "\n"
-                    added_prompt += "Ignore related results!\n"
-                
-                if 'rich_snippet_list' in result:
-                    added_prompt += str(result['rich_snippet_list']) + "\n"
-                    added_prompt += "Ignore related results!\n"
+        Use this information if you feel it is relevant.\n\nSTART_SEARCH_RESULTS"""
+        added_prompt += str(google_search_results) + "\n\n"
 
-                    # for rich_snippet in result['rich_snippet_list']:
-                    #     if 'snippet' in rich_snippet:
-                    #         added_prompt += rich_snippet['snippet'] + "\n\n"
-        else:
-            added_prompt += str(google_search_results) + "\n\n"
+        added_prompt += "END_SEARCH_RESULTS\n\n"
+
+        # if google_search_results:
+        #     # print('cats')
+        #     # pprint(google_search_results['organic_results'][:1])
+        #     for result in google_search_results['organic_results'][:3]:
+        #         if 'snippet' in result:
+        #             added_prompt += result['snippet'] + "\n\n"
+        #     #     print('chris1')
+        #     #     print(result)
+        #         if 'rich_snippet' in result:
+        #             added_prompt += str(result['rich_snippet']) + "\n"
+                
+        #         if 'rich_snippet_list' in result:
+        #             added_prompt += str(result['rich_snippet_list']) + "\n"
+
+        #             # for rich_snippet in result['rich_snippet_list']:
+        #             #     if 'snippet' in rich_snippet:
+        #             #         added_prompt += rich_snippet['snippet'] + "\n\n"
+        # else:
+        #     added_prompt += str(google_search_results) + "\n\n"
     except Exception as e:
         print(f"Caught an exception: {e}")
 
