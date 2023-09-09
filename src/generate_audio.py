@@ -189,7 +189,7 @@ def generate_podcast(topic_with_google_search_results, original_prompt, duration
     \n 1. <section 1>\n 2. <section 2>\n 3. ... \n Do not include any subpoints for each numbered item.\n\n
     We did a google search on this topic and found the following results: \n
     {topic_with_google_search_results}\n
-    If you find any of these google search results useful, feel free to include them in your outline. \n
+    If you find any of these google search results useful, please include them in your outline. \n
     Every outline part must be 1 and only 1 full sentence, specifying the content covered in that part of the podcast in complex detail.
     The podcast hosts are {', '.join(character_list)}. Have them take turns addressing one another.
     The podcast hosts have no ability to talk with anyone else on the show, and only the hosts will be talking together, 
@@ -260,7 +260,7 @@ def generate_podcast(topic_with_google_search_results, original_prompt, duration
         ONLY include content specific to this particular subsection on {subsection}. \n
         We did a google search on this topic and found the following results: \n
         {topic_with_google_search_results}\n
-        If any of the results are relevant, feel free to include them in the dialogue you generate. \n
+        If any of the results are relevant, please include them in the dialogue you generate. \n
         The transcript of the podcast so far is: \n<Transcript Start>\n {podcast_transcript}. \n <Transcript End> \n
         The outline of the overall podcast is:\n<Outline Start>\n {outline_text}. \n <Outline End> \n
         Write a detailed, conflict rich, emotionally extreme set of podcast interactions on {subsection}, including gripping dialogue, in a style that is emotionally captivating. Be creative.\n
