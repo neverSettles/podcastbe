@@ -163,7 +163,7 @@ def dict_to_audio(dialogue_dict,host_voice, filename="audio"):
 
 def generate_podcast(topic_with_google_search_results, original_prompt, duration=60):
     if duration:
-        TOTAL_PARTS = min(1, duration // 10)
+        TOTAL_PARTS = max(min(1, duration // 10), 3)
     print("Generating podcast on %s" % (original_prompt))
     print("Generating Podcast Hosts")
     character_count = str(random.randint(MIN_HOSTS, MAX_HOSTS))
