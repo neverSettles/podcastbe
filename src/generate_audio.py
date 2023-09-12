@@ -21,7 +21,7 @@ load_dotenv()
 
 
 TOTAL_PARTS = 2
-PARTS_PER_SECTION = 1
+PARTS_PER_SECTION = 2
 MIN_HOSTS = 2
 MAX_HOSTS = 2
 
@@ -228,6 +228,9 @@ def generate_podcast(topic_with_google_search_results, original_prompt, duration
     We did a google search on this topic and found the following results: \n
     {topic_with_google_search_results if topic_with_google_search_results != original_prompt else "NO RESULTS"}\n
     If you find any of these google search results useful, please include them in your outline. \n
+
+    The podcast hosts are tasked with talking about the topic, the outline should cover all the sorts of interesting components
+    about the topic the user provided ({original_prompt}). \n
     Every outline part must be 1 and only 1 full sentence, specifying the content covered in that part of the podcast in complex detail.
     The podcast hosts have no ability to talk with anyone else on the show, so do not assume they will be interviewing anyone.
     The first part should include high-level overview of the podcast with a brief introudction of the hosts, {character_raw}
@@ -292,7 +295,7 @@ def generate_podcast(topic_with_google_search_results, original_prompt, duration
         
         # For this subsection, generate dialogue
         prompt = f"""
-        You are generating dialogue for a podcast on {original_prompt} with outline {outline_text} 
+        You are tasked with generating dialogue for a podcast that the user has requested about {original_prompt} with outline {outline_text} 
         where this particular subsection is on {subsection}. 
         ONLY include content specific to this particular subsection on {subsection}. \n
         We did a google search on this topic and found the following results: \n
