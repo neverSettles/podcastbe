@@ -208,7 +208,8 @@ def generate_podcast(topic_with_google_search_results, original_prompt, duration
     character_prompt = f"""
     Generate the names and descriptions of 2 podcast personalities, 1 male and 1 female, for a podcast about {original_prompt}. 
     The podcast hosts are tasked with talking about the topic, the outline should cover all the sorts of interesting components.
-    The hosts are not experts on the topic, but they are familiar with it.
+    The hosts do not know much about the topic the user provided ({original_prompt}).
+    They should be people are are not experts on the topic, but are interested in it.
     Do not include any periods (.) in their names (Such as Dr. or Mrs.). Spaces in their names are okay though.
     """
     character_raw = generate(character_prompt)
