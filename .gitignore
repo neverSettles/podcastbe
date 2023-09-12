@@ -3,5 +3,5 @@
 podenv/
 demo/
 outputs/
-output/
+# output/
 **/.DS_Store
