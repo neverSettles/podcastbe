@@ -1,6 +1,7 @@
 import os
 import requests
 import base64
+from time import sleep
 from generate_audio import generate_podcast
 from generate_video import generate_image
 
@@ -129,6 +130,9 @@ def generate_episode(prompt, original_prompt, length=60):
     )
     publish_episode(episode_id)
     print(f"Podcast published at {share_url}.")
+    print('Sleeping for 2 seconds to allow image to sync...')
+    sleep(2)
+
     return share_url
 
 
