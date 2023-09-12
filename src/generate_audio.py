@@ -229,7 +229,8 @@ def generate_podcast(topic_with_google_search_results, original_prompt, duration
     {topic_with_google_search_results if topic_with_google_search_results != original_prompt else "NO RESULTS"}\n
     If you find any of these google search results useful, please include them in your outline. \n
 
-    The podcast hosts are tasked with talking about the topic, the outline should cover all the sorts of interesting components
+    The podcast hosts are tasked with talking about the topic, the outline should cover all the sorts of interesting components.
+    The podcast hosts are not necessarily familiar with the topic.
     about the topic the user provided ({original_prompt}). \n
     Every outline part must be 1 and only 1 full sentence, specifying the content covered in that part of the podcast in complex detail.
     The podcast hosts have no ability to talk with anyone else on the show, so do not assume they will be interviewing anyone.
