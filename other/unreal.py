@@ -1,3 +1,4 @@
+
 import requests
 import json
 import os
@@ -79,15 +80,14 @@ First and foremost, scalability. Cassandra is renowned for its horizontal scalab
 
 """
 
-for voice in voices:
-    # There are 2 APIs: stream (500 characters) and speechTasks (500,000 chars)
+def convert_to_speech_bytes_stream(text, voice):
     response = requests.post(
     'https://api.v6.unrealspeech.com/stream',
     headers = {
         'Authorization' : 'Bearer ' + os.getenv('UNREAL_API_KEY')
     },
     json = {
-        'Text': text_to_speak,
+        'Text': text,
         'VoiceId': voice,
         'Bitrate': '128k',
     }
@@ -95,5 +95,44 @@ for voice in voices:
 
     print(response)
 
+    return response.content
+
+def convert_to_speech_bytes_synthesisTasks(text, voice):
+    response = requests.post(
+    'https://api.v6.unrealspeech.com/synthesisTasks',
+    headers = {
+        'Authorization' : 'Bearer ' + os.getenv('UNREAL_API_KEY')
+    }, json = {
+        'Text': text,
+        'VoiceId': voice,
+        'Bitrate': '128k',
+    })
+
+    fetch_url = response.json()['SynthesisTask']['OutputUri']
+
+    print('fetch_url')
+    print(fetch_url)
+
+    MAX_RETRIES = 40
+
+    for i in range(MAX_RETRIES):
+        sleep(0.5)
+        response = requests.get(fetch_url)
+        if response.status_code == 200:
+            print('success after ' + str(i) + ' retries')
+            return response.content
+        else:
+            print(response.status_code)
+    
+    return None
+
+
+for voice in voices:
+    # There are 2 APIs: stream (500 characters) and speechTasks (500,000 chars)
+    response = convert_to_speech_bytes_synthesisTasks(text_to_speak, voice)
+
+    # print(response.text)
+
     with open("output/unreal/" + voice + ".mp3", 'wb') as f:
-        f.write(response.content)
+        f.write(response)
+
