@@ -177,7 +177,7 @@ def enrich_topic(topic):
 
 
         if google_search_results:
-            for result in google_search_results['organic_results'][:3]:
+            for result in google_search_results['organic_results'][:5]:
                 if 'snippet' in result:
                     added_prompt += result['snippet'] + "\n\n"
                 if 'rich_snippet' in result:
