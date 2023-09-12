@@ -124,6 +124,56 @@ def synthesize_speech(voice, text):
         audio_stream = response['AudioStream']
         return audio_stream.read()
 
+def convert_to_speech_eleven(voice, text):
+    print('synthesizing speech')
+    data = {
+      "text": text,
+      "model_id": "eleven_multilingual_v1",
+      "voice_settings": {
+        "stability": 0.5,
+        "similarity_boost": 0.5
+      }
+    }
+
+    josh_voice_id = "TxGEqnHWrfWFTfGW9XjX"
+
+    # if voice == "Matthew":
+    #     voice = "TxGEqnHWrfWFTfGW9XjX"
+
+
+    CHUNK_SIZE = 1024
+    url = "https://api.elevenlabs.io/v1/text-to-speech/" + josh_voice_id
+
+
+    elevenlabs_api_key = os.getenv('ELEVENLABS_API_KEY')
+    headers = {
+      "Accept": "audio/mpeg",
+      "Content-Type": "application/json",
+      "xi-api-key": elevenlabs_api_key
+    }
+
+    response = requests.post(url, json=data, headers=headers)
+        
+    return response.iter_content(chunk_size=CHUNK_SIZE)
+
+def synthesize_speech_eleven(voice, text):
+        # Use Amazon Polly to convert text to speech
+        polly_client = boto3.Session(
+                        aws_access_key_id=os.getenv('AWS_ACCESS_KEY'),
+                        aws_secret_access_key=os.getenv('AWS_SECRET_KEY'),
+                        region_name=os.getenv('AWS_REGION', 'us-east-1')).client('polly')
+
+        response = polly_client.synthesize_speech(
+            VoiceId=voice,
+            OutputFormat='mp3',
+            Engine='neural',
+            Text=text
+        )
+
+        # Assuming you've already made the request and have the response
+        audio_stream = response['AudioStream']
+        return audio_stream.read()
+
 def bytes_to_audio_segment(
         audio_bytes, sample_rate=44100, sample_width=2, channels=1
     ):
@@ -163,10 +213,11 @@ def dict_to_audio(dialogue_dict,host_voice, filename="audio"):
 
 def generate_podcast(topic_with_google_search_results, original_prompt, duration=60):
     if duration:
-        TOTAL_PARTS = max(min(1, duration // 10), 3)
+        TOTAL_PARTS = min(max(1, duration // 10), 3)
+    print("Total Parts:", TOTAL_PARTS)
+    print("Total Parts Per Section:", PARTS_PER_SECTION)
     print("Generating podcast on %s" % (original_prompt))
     print("Generating Podcast Hosts")
-    character_count = str(random.randint(MIN_HOSTS, MAX_HOSTS))
     character_prompt = f"""
     Generate the names and descriptions of 2 podcast personalities, 1 male and 1 female, for a podcast about {original_prompt}. 
     Do not include any periods (.) in their names (Such as Dr. or Mrs.). Spaces in their names are okay though.
@@ -188,12 +239,10 @@ def generate_podcast(topic_with_google_search_results, original_prompt, duration
     outline_prompt = f"""Write a {TOTAL_PARTS}-part outline for a podcast on {original_prompt} with headings in the format 
     \n 1. <section 1>\n 2. <section 2>\n 3. ... \n Do not include any subpoints for each numbered item.\n\n
     We did a google search on this topic and found the following results: \n
-    {topic_with_google_search_results}\n
+    {topic_with_google_search_results if topic_with_google_search_results != original_prompt else "NO RESULTS"}\n
     If you find any of these google search results useful, please include them in your outline. \n
     Every outline part must be 1 and only 1 full sentence, specifying the content covered in that part of the podcast in complex detail.
-    The podcast hosts are {', '.join(character_list)}. Have them take turns addressing one another.
-    The podcast hosts have no ability to talk with anyone else on the show, and only the hosts will be talking together, 
-    so do not assume they will be interviewing anyone.
+    The podcast hosts have no ability to talk with anyone else on the show, so do not assume they will be interviewing anyone.
     The first part should include high-level overview of the podcast with a brief introudction of the hosts, {character_raw}
     """
     print("outline_prompt ", outline_prompt)
@@ -211,12 +260,13 @@ def generate_podcast(topic_with_google_search_results, original_prompt, duration
     subsections = []
     for section in outline_list:
         outline_subsection_prompt = """
-                Write a %s-part subsection outline for a podcast on %s with outline %s where this particular subsection is on %s. ONLY include content specific to this particular subsection on %s. with headings in the format \n 1. <section 1>\n 2. <section 2>\n 3. ... \n Do not include any subpoints for each numbered item.\n\n
+                Write a %s-part subsection outline for a podcast on %s with outline %s where this particular subsection is on %s. 
+                ONLY include content specific to this particular subsection on %s. with headings in the format \n 1. <section 1>\n 2. <section 2>\n 3. ... \n Do not include any subpoints for each numbered item.\n\n
                 Make sure the section addresses content that is unique to its part of the podcast. \n
-                Every subsection outline part must be a full sentence, specifying the content covered in that part of the podcast in complex detail. Be incredibly creative, technically accurate and piercing with insight.
+                Every subsection outline part must be a full sentence, specifying the content covered in that part of the podcast in complex detail. 
+                Be incredibly creative, technically accurate and piercing with insight.
                 The podcast hosts have no ability to talk with anyone else on the show, and only the hosts will be talking together, 
                 so do not assume they will be interviewing anyone.
-                If this is the introduction, make sure to include at least a subsection for a broad introduction, and a subsection introducing the hosts.
                 """ % (
             str(PARTS_PER_SECTION),
             original_prompt,
@@ -263,15 +313,15 @@ def generate_podcast(topic_with_google_search_results, original_prompt, duration
         If any of the results are relevant, please include them in the dialogue you generate. \n
         The transcript of the podcast so far is: \n<Transcript Start>\n {podcast_transcript}. \n <Transcript End> \n
         The outline of the overall podcast is:\n<Outline Start>\n {outline_text}. \n <Outline End> \n
-        Write a detailed, conflict rich, emotionally extreme set of podcast interactions on {subsection}, including gripping dialogue, in a style that is emotionally captivating. Be creative.\n
-        Make sure the podcast addresses content that is unique to its part of the outline, {subsection}. Do not focus on content addressed elsewhere in the outline. \n
+        
+        Write a detailed, conflict rich, emotionally extreme set of podcast interactions on {subsection},
+        including gripping dialogue, in a style that is emotionally captivating. Be creative.\n
+        Make sure the podcast addresses content that is unique to its part of the outline, {subsection}.
+        Do not focus on content addressed elsewhere in the outline. \n
         Do not include any headings or subheadings. \n
-        The podcast hosts are {', '.join(character_list)}. Have them take turns addressing one another.
-        The podcast hosts have no ability to talk with anyone else on the show, and only the hosts will be talking together, 
-        so do not assume they will be interviewing anyone.
-        {"This is the introduction. Make sure to provide a high-level overview and introduce the hosts." if index == 0  else ""}
-        {"This is the last section. Make sure to provide a high-level overview and conclude the podcast." if index == len(overall_outline) - 1 else ""}
-        {"This section is  in the middle of the podcast, so do not start or end the podcast." if index != 0 and index != len(overall_outline) - 1 else ""}
+        The podcast hosts are {', '.join(character_list)}. Have them take turns arguing with each other on the topic.
+        The podcast hosts have no ability to talk with anyone else on the show,
+          so do not assume they will be interviewing anyone.
         The speakers must go back and forth at least 2 times.
         Generate more than 100 tokens.
         Generate less than 400 tokens.
@@ -305,15 +355,15 @@ def generate_podcast(topic_with_google_search_results, original_prompt, duration
 
     # Convert user_text to snake case file name
     filename = original_prompt[:30].lower().replace(" ", "_")
-    combined_audio_segment.export(f"output/{filename}.mp3", format="mp3")
+    combined_audio_segment.export(f"output/v2/{filename}.mp3", format="mp3")
     combined_audio_segment.export(f"output/speech.mp3", format="mp3")
     return f"output/{filename}.mp3"
 
 def gen_once(text):
-    return generate_podcast(text, text)
+    return generate_podcast(text, text, duration=1)
 
 if __name__ == "__main__":
-    gen_once("The optimal safeway in San Francisco to get Groceries at")
+    gen_once("NegEntropy")
     # x = bytes_to_audio_segment(synthesize_speech('Joanna', 'Hello World'))
 
     # x.export('test.mp3', format='mp3')

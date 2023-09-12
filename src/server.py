@@ -14,6 +14,9 @@ from gen_podcast import create_emotional_podcast
 load_dotenv()
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
+print('key')
+print(os.getenv("OPENAI_API_KEY"))
+
 app = Flask(__name__)
 CORS(app)
 s3 = boto3.client('s3')
