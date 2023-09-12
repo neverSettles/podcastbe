@@ -52,8 +52,10 @@ voices = [
     # 'male-3',
     # 'dev-0',
     # 'dev-1',
-    'dev-2', # obama
-    'dev-3', # peterson
+    # 'dev-2', # obama
+    # 'dev-3', # peterson
+    'Amy',
+    'Dan',
 ]
 
 potential_voices = [
@@ -75,48 +77,23 @@ Today, I'd like to discuss a topic that's close to my heart: the superiority of 
 
 First and foremost, scalability. Cassandra is renowned for its horizontal scalability. As your data grows, you can effortlessly add more nodes to the cluster without any downtime, ensuring consistent performance.
 
-Now, let's talk about availability. With its distributed architecture, Cassandra ensures there are no single points of failure. Even if several nodes were to fail, the database remains operational. This level of reliability is paramount for businesses that can't afford any downtime.
 """
 
-# text_to_speak = """
-# Mat lived in a quiet village, where nothing ever changed. One day, while exploring the forest, he stumbled upon a hidden cave. Inside, he found a shimmering, ancient amulet. As he touched it, memories of past heroes flooded his mind. The amulet granted him the wisdom of ages. With newfound knowledge, Mat transformed his village, introducing innovations and teaching forgotten arts. The once-sleepy village thrived, becoming a beacon of hope. Mat, once an ordinary boy, was now the village's cherished sage, all thanks to a chance discovery in the woods.
-# """
-
 for voice in voices:
-    payload = json.dumps({
-    "Text": text_to_speak,
-    "VoiceId": voice,
-    "Bitrate": "320k",
-    "AudioFormat": "mp3",
-    "OutputFormat": "uri"
-    })
-
-    key = os.getenv("UNREAL_API_KEY")
-
+    # There are 2 APIs: stream (500 characters) and speechTasks (500,000 chars)
+    response = requests.post(
+    'https://api.v6.unrealspeech.com/stream',
     headers = {
-    'Authorization': 'Bearer ' + str(key),
-    'Content-Type': 'application/json'
+        'Authorization' : 'Bearer ' + os.getenv('UNREAL_API_KEY')
+    },
+    json = {
+        'Text': text_to_speak,
+        'VoiceId': voice,
+        'Bitrate': '128k',
     }
+    )
 
-    response = requests.request("POST", url, headers=headers, data=payload)
+    print(response)
 
-    print('response')
-    print(response.text)
-
-    fetch_url = response.json()['SynthesisTask']['OutputUri']
-
-    print('fetch_url')
-    print(fetch_url)
-
-    headers = {
-        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36'
-    }
-    sleep(5)
-    with requests.Session() as session:
-        audio = session.get(fetch_url, headers=headers)
-    # audio = requests.get(fetch_url)
-
-    # save audio locally
-    print (audio)
     with open("output/unreal/" + voice + ".mp3", 'wb') as f:
-        f.write(audio.content)
+        f.write(response.content)
