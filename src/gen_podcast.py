@@ -289,10 +289,11 @@ def create_emotional_podcast(topic, d, o):
     # Check if topic is appropriate
     appropriate = call_openai_api(f"""
     A user wants a podcast about {topic}.
-    Is this topic appropriate for a podcast that is publicly available on the internet?
+    Is this topic inappropriate for a podcast that is publicly available on the internet?
     Output only "Yes" or "No".
     """)
-    if appropriate == "No":
+    if appropriate == "Yes":
+        print("This topic is not appropriate for a podcast that is publicly available on the internet.")
         return "This topic is not appropriate for a podcast that is publicly available on the internet."
     enriched_topic_info = enrich_topic(topic)
     share_url = generate_episode(enriched_topic_info, topic, d)
