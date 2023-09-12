@@ -137,7 +137,7 @@ import time
 
 # Choose a location for the cache
 cachedir = './cache_dir'
-memory = Memory(cachedir, verbose=0)
+memory = Memory(cachedir, verbose=1)
 @memory.cache
 def enrich_topic(topic):
     relevance_prompt = f"""
@@ -154,10 +154,10 @@ def enrich_topic(topic):
     # Try 3 times before failing
     added_prompt = ""
     try:
-        relevant_search_topics = call_anthropic_api(relevance_prompt)
+        # relevant_search_topics = call_anthropic_api(relevance_prompt)
         
-        relevant_search_topics = json.loads(relevant_search_topics)
-        relevant_search_topic = relevant_search_topics['google_search_topic']
+        # relevant_search_topics = json.loads(relevant_search_topics)
+        # relevant_search_topic = relevant_search_topics['google_search_topic']
 
         relevant_search_topic = topic
 
