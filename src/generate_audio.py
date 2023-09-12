@@ -355,7 +355,7 @@ def generate_podcast(topic_with_google_search_results, original_prompt, duration
 
     # Convert user_text to snake case file name
     filename = original_prompt[:30].lower().replace(" ", "_")
-    combined_audio_segment.export(f"output/v2/{filename}.mp3", format="mp3")
+    combined_audio_segment.export(f"output/{filename}.mp3", format="mp3")
     combined_audio_segment.export(f"output/speech.mp3", format="mp3")
     return f"output/{filename}.mp3"
 
