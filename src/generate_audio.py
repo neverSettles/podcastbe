@@ -12,8 +12,10 @@ from anthropic import Anthropic, HUMAN_PROMPT, AI_PROMPT
 import numpy as np
 from pydub import AudioSegment
 from dotenv import load_dotenv
+import requests
 import os
 import boto3
+from time import sleep
 
 load_dotenv()
 
@@ -84,13 +86,13 @@ def get_gender(host_name):
 
 def voice_choice(host_list):
     male_voices = [
-        "Matthew",
-        "Stephen",
+        {"aws": "Matthew", "unreal": "Dan"},
+        # "Stephen",
     ]
 
     female_voices = [
-        "Joanna",
-        "Salli",
+        {"aws": "Joanna", "unreal": "Amy"},
+        # "Salli",
     ]
 
     host_voice = {}
@@ -114,7 +116,7 @@ def synthesize_speech(voice, text):
                         region_name=os.getenv('AWS_REGION', 'us-east-1')).client('polly')
 
         response = polly_client.synthesize_speech(
-            VoiceId=voice,
+            VoiceId=voice['aws'],
             OutputFormat='mp3',
             Engine='neural',
             Text=text
@@ -124,55 +126,40 @@ def synthesize_speech(voice, text):
         audio_stream = response['AudioStream']
         return audio_stream.read()
 
-def convert_to_speech_eleven(voice, text):
-    print('synthesizing speech')
-    data = {
-      "text": text,
-      "model_id": "eleven_multilingual_v1",
-      "voice_settings": {
-        "stability": 0.5,
-        "similarity_boost": 0.5
-      }
-    }
-
-    josh_voice_id = "TxGEqnHWrfWFTfGW9XjX"
-
-    # if voice == "Matthew":
-    #     voice = "TxGEqnHWrfWFTfGW9XjX"
-
-
-    CHUNK_SIZE = 1024
-    url = "https://api.elevenlabs.io/v1/text-to-speech/" + josh_voice_id
-
-
-    elevenlabs_api_key = os.getenv('ELEVENLABS_API_KEY')
+def convert_to_speech_bytes_synthesisTasks(voice, text):
+    response = requests.post(
+    'https://api.v6.unrealspeech.com/synthesisTasks',
     headers = {
-      "Accept": "audio/mpeg",
-      "Content-Type": "application/json",
-      "xi-api-key": elevenlabs_api_key
-    }
+        'Authorization' : 'Bearer ' + os.getenv('UNREAL_API_KEY')
+    }, json = {
+        'Text': text,
+        'VoiceId': voice['unreal'],
+        'Bitrate': '128k',
+    })
 
-    response = requests.post(url, json=data, headers=headers)
-        
-    return response.iter_content(chunk_size=CHUNK_SIZE)
+    if response.status_code != 200:
+        print(response.text)
+        print('erroring out, falling back to aws')
+        return synthesize_speech(voice, text)
 
-def synthesize_speech_eleven(voice, text):
-        # Use Amazon Polly to convert text to speech
-        polly_client = boto3.Session(
-                        aws_access_key_id=os.getenv('AWS_ACCESS_KEY'),
-                        aws_secret_access_key=os.getenv('AWS_SECRET_KEY'),
-                        region_name=os.getenv('AWS_REGION', 'us-east-1')).client('polly')
+    fetch_url = response.json()['SynthesisTask']['OutputUri']
 
-        response = polly_client.synthesize_speech(
-            VoiceId=voice,
-            OutputFormat='mp3',
-            Engine='neural',
-            Text=text
-        )
+    print('fetch_url')
+    print(fetch_url)
 
-        # Assuming you've already made the request and have the response
-        audio_stream = response['AudioStream']
-        return audio_stream.read()
+    MAX_RETRIES = 40
+
+    for i in range(MAX_RETRIES):
+        sleep(0.5)
+        response = requests.get(fetch_url)
+        if response.status_code == 200:
+            print('success after ' + str(i) + ' retries')
+            return response.content
+        else:
+            print(response.status_code)
+    
+    print('erroring out, falling back to aws')
+    return synthesize_speech(voice, text)
 
 def bytes_to_audio_segment(
         audio_bytes, sample_rate=44100, sample_width=2, channels=1
@@ -207,7 +194,7 @@ def dict_to_audio(dialogue_dict,host_voice, filename="audio"):
             # voice = user.get_voices_by_name(host_voice[key])[0]
             # audio_bytes = voice.generate_audio_bytes(value)
             print(key, value)
-            audio_bytes = synthesize_speech(host_voice[key], value)
+            audio_bytes = convert_to_speech_bytes_synthesisTasks(host_voice[key], value)
         return bytes_to_audio_segment(audio_bytes)
 
 
@@ -363,7 +350,7 @@ def gen_once(text):
     return generate_podcast(text, text, duration=1)
 
 if __name__ == "__main__":
-    gen_once("NegEntropy")
+    gen_once("Funny sloths")
     # x = bytes_to_audio_segment(synthesize_speech('Joanna', 'Hello World'))
 
     # x.export('test.mp3', format='mp3')
