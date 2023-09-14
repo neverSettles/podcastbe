@@ -147,7 +147,7 @@ def convert_to_speech_bytes_synthesisTasks(voice, text):
     print('fetch_url')
     print(fetch_url)
 
-    MAX_RETRIES = 40
+    MAX_RETRIES = 80
 
     for i in range(MAX_RETRIES):
         sleep(0.5)
