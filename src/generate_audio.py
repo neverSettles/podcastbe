@@ -194,6 +194,7 @@ def convert_to_speech_eleven(voice, text):
     response = requests.post(url, json=data, headers=headers)
 
     print(response)
+    print(response.json())
     
     return b''.join(response.iter_content(chunk_size=CHUNK_SIZE))
 
@@ -343,7 +344,6 @@ def generate_podcast(topic_with_google_search_results, original_prompt, duration
         If any of the results are relevant, please include them in the dialogue you generate. \n
         The transcript of the podcast so far is: \n<Transcript Start>\n {podcast_transcript}. \n <Transcript End> \n
         The outline of the overall podcast is:\n<Outline Start>\n {outline_text}. \n <Outline End> \n
-        
         Write a detailed, conflict rich, emotionally extreme set of podcast interactions on {subsection},
         including gripping dialogue, in a style that is emotionally captivating. Be creative.\n
         Make sure the podcast addresses content that is unique to its part of the outline, {subsection}.
@@ -352,9 +352,11 @@ def generate_podcast(topic_with_google_search_results, original_prompt, duration
         The podcast hosts are {', '.join(character_list)}. Have them take turns arguing with each other on the topic.
         The podcast hosts have no ability to talk with anyone else on the show,
           so do not assume they will be interviewing anyone.
-        The speakers must go back and forth at least 2 times.
+        {"This is the start of the podcast, so make sure the speakers introduce themselves" if index == 0 else ""}
+        {"This is the end of the podcast, so make sure the speakers wrap up the podcast at the end" if index == len(overall_outline) - 1 else ""}
+        The speakers must go back and forth at least 4 times.
         Generate more than 100 tokens.
-        Generate less than 400 tokens.
+        Generate less than 800 tokens.
         Add XML tags surrounding each speaker's text.
         """
         for i, name in enumerate(character_list):
