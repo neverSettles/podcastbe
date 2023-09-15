@@ -194,7 +194,7 @@ def convert_to_speech_eleven(voice, text):
     response = requests.post(url, json=data, headers=headers)
 
     print(response)
-    print(response.json())
+    # print(response.json())
     
     return b''.join(response.iter_content(chunk_size=CHUNK_SIZE))
 
