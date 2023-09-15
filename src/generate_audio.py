@@ -236,7 +236,7 @@ def dict_to_audio(dialogue_dict,host_voice, filename="audio"):
             # voice = user.get_voices_by_name(host_voice[key])[0]
             # audio_bytes = voice.generate_audio_bytes(value)
             print(key, value)
-            audio_bytes = convert_to_speech_eleven(host_voice[key], value)
+            audio_bytes = convert_to_speech_bytes_synthesisTasks(host_voice[key], value)
         return bytes_to_audio_segment(audio_bytes)
 
 
