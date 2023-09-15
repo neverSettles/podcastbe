@@ -90,7 +90,7 @@ def voice_choice(host_list):
             "aws": "Matthew",
             "unreal": "Dan",
             # "eleven": "B6iuPRFYgnWhC9SAo8BS", # Oswald - intelligent professor
-            "eleven": "2EiwWnXFnvU5JabPnv8n", # Clyde
+            "eleven": "ODq5zmih8GrVes37Dizd", # Patrick
         },
         # "Stephen",
     ]
