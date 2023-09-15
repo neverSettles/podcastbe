@@ -89,7 +89,8 @@ def voice_choice(host_list):
         {
             "aws": "Matthew",
             "unreal": "Dan",
-            "eleven": "B6iuPRFYgnWhC9SAo8BS", # Oswald - intelligent professor
+            # "eleven": "B6iuPRFYgnWhC9SAo8BS", # Oswald - intelligent professor
+            "eleven": "2EiwWnXFnvU5JabPnv8n", # Clyde
         },
         # "Stephen",
     ]
@@ -98,7 +99,9 @@ def voice_choice(host_list):
         {
             "aws": "Joanna", 
             "unreal": "Amy",
-            "eleven": "a8uAokkpYQj8j7Bs7SaP", # Tamika
+            # "eleven": "a8uAokkpYQj8j7Bs7SaP", # Tamika
+            "eleven": "21m00Tcm4TlvDq8ikWAM", # Rachel
+            
         },
         # "Salli",
     ]
