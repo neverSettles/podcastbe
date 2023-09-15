@@ -100,7 +100,7 @@ def voice_choice(host_list):
             "aws": "Joanna", 
             "unreal": "Amy",
             # "eleven": "a8uAokkpYQj8j7Bs7SaP", # Tamika
-            "eleven": "21m00Tcm4TlvDq8ikWAM", # Rachel
+            "eleven": "XB0fDUnXU5powFXDhCwa", # Charlotte
             
         },
         # "Salli",
