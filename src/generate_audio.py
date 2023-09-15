@@ -86,12 +86,20 @@ def get_gender(host_name):
 
 def voice_choice(host_list):
     male_voices = [
-        {"aws": "Matthew", "unreal": "Dan"},
+        {
+            "aws": "Matthew",
+            "unreal": "Dan",
+            "eleven": "B6iuPRFYgnWhC9SAo8BS", # Oswald - intelligent professor
+        },
         # "Stephen",
     ]
 
     female_voices = [
-        {"aws": "Joanna", "unreal": "Amy"},
+        {
+            "aws": "Joanna", 
+            "unreal": "Amy",
+            "eleven": "a8uAokkpYQj8j7Bs7SaP", # Tamika
+        },
         # "Salli",
     ]
 
@@ -150,16 +158,44 @@ def convert_to_speech_bytes_synthesisTasks(voice, text):
     MAX_RETRIES = 80
 
     for i in range(MAX_RETRIES):
-        sleep(0.5)
+        sleep(1)
         response = requests.get(fetch_url)
         if response.status_code == 200:
             print('success after ' + str(i) + ' retries')
             return response.content
-        else:
+        elif i%10 == 9:
             print(response.status_code)
     
     print('erroring out, falling back to aws')
     return synthesize_speech(voice, text)
+
+def convert_to_speech_eleven(voice, text):
+    print('synthesizing speech')
+    data = {
+      "text": text,
+      "model_id": "eleven_multilingual_v1",
+      "voice_settings": {
+        "stability": 0.5,
+        "similarity_boost": 0.5
+      }
+    }
+
+
+    CHUNK_SIZE = 1024
+    url = "https://api.elevenlabs.io/v1/text-to-speech/" + voice['eleven']
+
+
+    headers = {
+      "Accept": "audio/mpeg",
+      "Content-Type": "application/json",
+      "xi-api-key": os.getenv("ELEVENLABS_API_KEY")
+    }
+
+    response = requests.post(url, json=data, headers=headers)
+
+    print(response)
+    
+    return b''.join(response.iter_content(chunk_size=CHUNK_SIZE))
 
 def bytes_to_audio_segment(
         audio_bytes, sample_rate=44100, sample_width=2, channels=1
@@ -194,7 +230,7 @@ def dict_to_audio(dialogue_dict,host_voice, filename="audio"):
             # voice = user.get_voices_by_name(host_voice[key])[0]
             # audio_bytes = voice.generate_audio_bytes(value)
             print(key, value)
-            audio_bytes = convert_to_speech_bytes_synthesisTasks(host_voice[key], value)
+            audio_bytes = convert_to_speech_eleven(host_voice[key], value)
         return bytes_to_audio_segment(audio_bytes)
 
 
