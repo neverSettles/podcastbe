@@ -194,7 +194,9 @@ def convert_to_speech_eleven(voice, text):
     response = requests.post(url, json=data, headers=headers)
 
     print(response)
-    # print(response.json())
+    if response.status_code == 400:
+        print("HTTP 400 Bad Request")
+        print(response.text)  # Print the raw response
     
     return b''.join(response.iter_content(chunk_size=CHUNK_SIZE))
 
