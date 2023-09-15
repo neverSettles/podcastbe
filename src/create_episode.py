@@ -69,6 +69,7 @@ def create_episode(show_id, title, summary, audio_url, image_url):
         }
     }
     response = requests.post(url, headers=headers, json=data)
+    print(response.json())
     response.raise_for_status()
     print("Response:", response.json())
     print(f'Episode "{title}" created successfully.')
@@ -122,7 +123,7 @@ def generate_episode(prompt, original_prompt, length=60):
     print(image_url)
 
     episode_id, share_url = create_episode(
-        "podcraft",
+        "44271",
         title=original_prompt,
         summary=original_prompt,
         audio_url=audio_url,
@@ -137,4 +138,36 @@ def generate_episode(prompt, original_prompt, length=60):
 
 
 if __name__ == "__main__":
-    generate_episode("Compare RNNs with Transformers", "Compare RNNs with Transformers", 60)
+    # generate_episode("Compare RNNs with Transformers", "Compare RNNs with Transformers", 60)
+    original_prompt = "Guatemala recent election"
+    audio_file = 'output/speech.mp3'
+
+    upload_url, audio_url, content_type = authorize_upload(audio_file)
+    upload_file(audio_file, upload_url, content_type)
+
+    image_file = generate_image(original_prompt)
+    image_url = upload_image_to_imgur(image_file, "1b765e0d179f29e")
+    print(image_url)
+
+    episode_id, share_url = create_episode(
+        "44271",
+        title=original_prompt,
+        summary=original_prompt,
+        audio_url=audio_url,
+        image_url=image_url,
+    )
+    publish_episode(episode_id)
+
+    # original_prompt = "Guatemala recent election"
+
+    # audio_url = "https://transistorupload.s3.amazonaws.com/uploads/api/ba1e0e14-5b47-498d-bded-5ed371e20d4b/guatemala%27s_recent_election.mp3"
+    # image_url="https://i.imgur.com/pcBDQIa.png"
+    # episode_id, share_url = create_episode(
+    #     "your-podcast",
+    #     title=original_prompt,
+    #     summary=original_prompt,
+    #     audio_url=audio_url,
+    #     image_url=image_url,
+    # )
+
+    # publish_episode(episode_id)
