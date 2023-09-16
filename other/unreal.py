@@ -54,7 +54,7 @@ voices = [
     # 'dev-0',
     # 'dev-1',
     # 'dev-2', # obama
-    # 'dev-3', # peterson
+    'dev-3', # peterson
     'Amy',
     'Dan',
 ]
@@ -107,6 +107,8 @@ def convert_to_speech_bytes_synthesisTasks(text, voice):
         'VoiceId': voice,
         'Bitrate': '128k',
     })
+
+    print(response)
 
     fetch_url = response.json()['SynthesisTask']['OutputUri']
 

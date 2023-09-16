@@ -21,7 +21,7 @@ for voice in response['voices']:
     print(voice['name'])
     print(voice['voice_id'])
 
-voice_id = response['voices'][-1]['voice_id']
+voice_id = response['voices'][-3]['voice_id']
 
 def convert_to_speech_eleven(text, voice_id):
     print('synthesizing speech')
