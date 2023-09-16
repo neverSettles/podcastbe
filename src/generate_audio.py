@@ -89,8 +89,8 @@ def voice_choice(host_list):
         {
             "aws": "Matthew",
             "unreal": "Dan",
-            # "eleven": "B6iuPRFYgnWhC9SAo8BS", # Oswald - intelligent professor
-            "eleven": "ODq5zmih8GrVes37Dizd", # Arnold
+            "eleven": "B6iuPRFYgnWhC9SAo8BS", # Oswald - intelligent professor
+            # "eleven": "ODq5zmih8GrVes37Dizd", # Arnold
         },
         # "Stephen",
     ]
@@ -186,18 +186,27 @@ def convert_to_speech_eleven(voice, text):
 
     CHUNK_SIZE = 1024
     url = "https://api.elevenlabs.io/v1/text-to-speech/" + voice['eleven']
+    elevenlabs_api_key = os.getenv("ELEVENLABS_API_KEY")
 
 
     headers = {
       "Accept": "audio/mpeg",
       "Content-Type": "application/json",
-      "xi-api-key": os.getenv("ELEVENLABS_API_KEY")
+      "xi-api-key": elevenlabs_api_key
     }
+
+    print('Sending eleven labs request...')
+    print(url)
+    print(data)
+    print(headers)
 
     response = requests.post(url, json=data, headers=headers)
 
     print(response)
     if response.status_code == 400:
+        print("HTTP 400 Bad Request")
+        print(response.text)  # Print the raw response
+    if response.status_code == 401:
         print("HTTP 400 Bad Request")
         print(response.text)  # Print the raw response
     
@@ -236,7 +245,7 @@ def dict_to_audio(dialogue_dict,host_voice, filename="audio"):
             # voice = user.get_voices_by_name(host_voice[key])[0]
             # audio_bytes = voice.generate_audio_bytes(value)
             print(key, value)
-            audio_bytes = convert_to_speech_bytes_synthesisTasks(host_voice[key], value)
+            audio_bytes = convert_to_speech_eleven(host_voice[key], value)
         return bytes_to_audio_segment(audio_bytes)
 
 
